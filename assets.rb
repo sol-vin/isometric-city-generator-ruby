@@ -14,11 +14,15 @@ class Assets
   def self.load_assets game
     raise ArguementError.new("Did not supply a valid Gosu window!") unless game.is_a? Window
 
-    @@tiles[:base_tile] = Image.new(game, "content/floor/tile.png", false)
+    content_path = File.dirname(File.absolute_path(__FILE__)) + '/content/'
 
-    block = Image.new(game, 'content/building/block.png', false)
-    block_light = Image.new(game, 'content/building/block_light.png', false)
-    block_shade = Image.new(game, 'content/building/block_shade,png', false)
+    @@tiles[:base_tile] = Image.new(game, content_path + 'floor/tile.png', false)
+
+
+    puts (content_path + 'building/block.png')
+    block = Image.new(game, content_path + 'building/block.png', false)
+    block_light = Image.new(game, content_path + 'building/block_light.png', false)
+    block_shade = Image.new(game, content_path + 'building/block_shade,png', false)
 
     @@blocks[:base_block] = BlockAsset.new(block,
                                            block_light,

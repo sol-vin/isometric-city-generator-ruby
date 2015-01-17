@@ -25,3 +25,4 @@ class Game < Window
 end
 
 Game.new.show
+
