@@ -19,10 +19,10 @@ class Assets
     @@tiles[:base_tile] = Image.new(game, content_path + 'floor/tile.png', false)
 
 
-    puts (content_path + 'building/block.png')
-    block = Image.new(game, content_path + 'building/block.png', false)
-    block_light = Image.new(game, content_path + 'building/block_light.png', false)
-    block_shade = Image.new(game, content_path + 'building/block_shade,png', false)
+    puts (content_path + 'building/blocks/block.png')
+    block = Image.new(game, (content_path + 'building/blocks/block.png'), false)
+    block_light = Image.new(game, (content_path + 'building/blocks/block_light.png'), false)
+    block_shade = Image.new(game, (content_path + 'building/blocks/block_shade,png'), false)
 
     @@blocks[:base_block] = BlockAsset.new(block,
                                            block_light,

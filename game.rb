@@ -1,3 +1,5 @@
+#! /usr/bin/env ruby
+
 require 'gosu'
 require './assets.rb'
 require './isometric_object.rb'
