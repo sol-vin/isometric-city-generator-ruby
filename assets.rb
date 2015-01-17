@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'gosu'
 
 include Gosu
@@ -16,13 +17,13 @@ class Assets
 
     content_path = File.dirname(File.absolute_path(__FILE__)) + '/content/'
 
-    @@tiles[:base_tile] = Image.new(game, content_path + 'floor/tile.png', false)
+    @@tiles[:base_tile] = Gosu::Image.new(game, content_path + 'floor/tile.png', false)
 
 
-    puts (content_path + 'building/blocks/block.png')
-    block = Image.new(game, (content_path + 'building/blocks/block.png'), false)
-    block_light = Image.new(game, (content_path + 'building/blocks/block_light.png'), false)
-    block_shade = Image.new(game, (content_path + 'building/blocks/block_shade,png'), false)
+    puts (content_path + 'building/block.png')
+    block = Gosu::Image.new(game, (content_path + 'building/block.png'), false)
+    block_light = Gosu::Image.new(game, (content_path + 'building/block_light.png'), false)
+    block_shade = Gosu::Image.new(game, (content_path + 'building/block_shade.png'), false)
 
     @@blocks[:base_block] = BlockAsset.new(block,
                                            block_light,
@@ -42,6 +43,22 @@ class Assets
     #raise ArgumentError unless @@tile.keys.include? type
     @@tiles[type]
   end
+
+  def self.block_width
+    @@blocks[:base_block].width
+  end
+
+  def self.block_height
+    @@blocks[:base_block].height
+  end
+
+  def self.tile_width
+    @@tiles[:base_tile].width
+  end
+
+  def self.tile_height
+    @@tiles[:base_tile].height
+  end
 end
 
 #Used to hold block images and shading/lighting as well as an add-on feature
@@ -50,7 +67,6 @@ class BlockAsset
 
   def initialize(base_image, light_image = nil, shade_image = nil, feature_image = nil)
     raise ArgumentError if base_image.nil?
-    raise ArgumentError unless [light_image, shade_image, feature_image].all? {|item| item.is_a? Image}
 
     @base = base_image
     @light = light_image
@@ -68,5 +84,25 @@ class BlockAsset
 
   def has_feature?
     @shade.nil?
+  end
+
+  def width
+    @base.width
+  end
+
+  def height
+    @base.height
+  end
+end
+
+#I love this in ruby, write a struct, then have it automagically
+#write all the arithmetic for you.
+class Point < Struct.new(:x, :y)
+  def method_missing(name, *args)
+    #Check to see if the method name is one char long
+    #If so, it's most likely an operation like +, -, *, /
+    if(name.length == 1)
+      Point.new(x.send(name, args.first.x), y.send(name, args.first.y))
+    end
   end
 end

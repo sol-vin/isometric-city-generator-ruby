@@ -1,20 +1,21 @@
 #! /usr/bin/env ruby
 
+require 'rubygems'
 require 'gosu'
 require './assets.rb'
 require './isometric_object.rb'
-
+require './isometric_factory.rb'
 include Gosu
 
-class Game < Window
+class Game < Gosu::Window
 
   def initialize
-    super(640, 800, false)
+    super(800, 400, false)
     self.caption = "Isometric City Generator"
 
     Assets::load_assets self
 
-    @iso_object = IsometricObject.new(:base_block, {x: 40, y: 40})
+    @iso_factory = IsometricFactory.new
   end
 
   def update
@@ -22,7 +23,12 @@ class Game < Window
   end
 
   def draw
-    @iso_object.draw
+    20.times do |x|
+      20.times do |y|
+        pos = @iso_factory.get_tile_position(x, y)
+        Assets.get_tile_image(:base_tile).draw(pos.x, pos.y, 1)
+      end
+    end
   end
 end
 
