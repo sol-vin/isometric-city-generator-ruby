@@ -1,8 +1,6 @@
 require 'rubygems'
 require 'gosu'
 
-include Gosu
-
 #Holds image resources
 class Assets
   #Holds tile assets
@@ -19,8 +17,6 @@ class Assets
 
     @@tiles[:base_tile] = Gosu::Image.new(game, content_path + 'floor/tile.png', false)
 
-
-    puts (content_path + 'building/block.png')
     block = Gosu::Image.new(game, (content_path + 'building/block.png'), false)
     block_light = Gosu::Image.new(game, (content_path + 'building/block_light.png'), false)
     block_shade = Gosu::Image.new(game, (content_path + 'building/block_shade.png'), false)
@@ -101,7 +97,9 @@ class Point < Struct.new(:x, :y)
   def method_missing(name, *args)
     #Check to see if the method name is one char long
     #If so, it's most likely an operation like +, -, *, /
-    if(name.length == 1)
+    #Just in case there is a one letter method,
+    #also check to ensure there is only one arg
+    if(name.length == 1 && args.length == 1)
       Point.new(x.send(name, args.first.x), y.send(name, args.first.y))
     end
   end
