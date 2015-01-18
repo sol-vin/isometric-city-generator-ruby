@@ -1,8 +1,9 @@
 #! /usr/bin/env ruby
 
 require './assets.rb'
-require './isometric_object.rb'
 require './isometric_factory.rb'
+require 'devil/gosu'
+require 'method_profiler'
 
 include Gosu
 
@@ -19,12 +20,15 @@ class Game < Window
 
     @camera = Point.new(0,0)
 
-    @iso_factory = IsometricFactory.new(50, 50)
+    @iso_factory = IsometricFactory.new(40, 40)
   end
 
   def update
-    exit if button_down? KbEscape
-    @iso_factory.randomize if button_down? KbSpace
+    close if button_down? KbEscape
+    if button_down? KbSpace
+      @iso_factory.randomize
+      @image = nil
+    end
 
     @camera.x -= CAMERA_SPEED if button_down? KbRight
     @camera.x += CAMERA_SPEED if button_down? KbLeft
@@ -36,10 +40,13 @@ class Game < Window
   end
 
   def draw
-    translate(@camera.x, @camera.y) do
+    #draw first
+    @image ||= record(1800, 1000) do
       @iso_factory.draw_grid
       @iso_factory.draw_blocks
-      #draw_vision_test
+    end
+    translate(@camera.x, @camera.y) do
+      @image.draw(0, 0, 1)
     end
   end
 
@@ -54,5 +61,7 @@ class Game < Window
   end
 end
 
+profiler = MethodProfiler.observe(IsometricFactory)
 Game.new.show
+puts profiler.report
 

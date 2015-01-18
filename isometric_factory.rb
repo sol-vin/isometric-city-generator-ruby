@@ -1,7 +1,7 @@
 require 'perlin'
 
 class IsometricFactory
-  PERLIN_NOISE_STEP = 0.1
+  PERLIN_NOISE_STEP = 0.08
   OFFSET = Point.new(600, 300)
   MAX_HEIGHT = 20
 
@@ -13,6 +13,12 @@ class IsometricFactory
     @size_x = size_x
     @size_y = size_y
     @perlin_noise = Perlin::Generator.new(rand(1000), 1.0, 1)
+    @colors = []
+    @colors << 0xffffcc97
+    @colors << 0xffffa179
+    @colors << 0xffd34b59
+    @colors << 0xffc13759
+    @colors << 0xff744268
   end
 
   def randomize
@@ -57,13 +63,14 @@ class IsometricFactory
     end
   end
 
+  def draw_block(x, y, z)
+    color_index = ((z / MAX_HEIGHT.to_f).clamp(0, 1.0)*@colors.length).to_i
+    position = IsometricFactory.get_block_position(x, y, z)
+    Assets.get_block_asset(:base_block).draw(position, 1, @colors[color_index])
+  end
+
   def draw_blocks
-    colors = []
-    colors << 0xffffcc97
-    colors << 0xffffa179
-    colors << 0xffd34b59
-    colors << 0xffc13759
-    colors << 0xff744268
+
 
     size_x.times do |x|
       size_y.times do |y|
@@ -71,9 +78,7 @@ class IsometricFactory
         height.times do |z|
           #skip drawing this block if we can't see it anyways.
           next if is_block_at?(x + 1, y + 1, z + 1) && x == size_x && y != size_y
-          color_index = ((z / MAX_HEIGHT.to_f).clamp(0, 1.0)*colors.length).to_i
-          position = IsometricFactory.get_block_position(x, y, z)
-          Assets.get_block_asset(:base_block).draw(position, 1, colors[color_index])
+          draw_block(x,y,z)
         end
       end
     end
