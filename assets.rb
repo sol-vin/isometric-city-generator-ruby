@@ -11,7 +11,7 @@ class Assets
 
   #Load the assets
   def self.load_assets game
-    raise ArguementError.new("Did not supply a valid Gosu window!") unless game.is_a? Window
+    raise ArgumentError.new('Did not supply a valid Gosu window!') unless game.is_a? Window
 
     content_path = File.dirname(File.absolute_path(__FILE__)) + '/content/'
 
@@ -28,7 +28,7 @@ class Assets
 
   #Get a block asset from @@blocks
   def self.get_block_asset type
-    raise ArgumentError.new("Type must be a symbol!") unless type.is_a? Symbol
+    raise ArgumentError.new('Type must be a symbol!') unless type.is_a? Symbol
     #commented out because during testing returns false because Assets.load_asset can't be called :(
     #raise ArgumentError unless @@blocks.keys.include? type
     @@blocks[type]
@@ -89,6 +89,13 @@ class BlockAsset
   def height
     @base.height
   end
+
+  def draw(position, z_order, color)
+    base.draw(position.x, position.y, z_order, 1, 1, color)
+    light.draw(position.x, position.y, z_order, 1, 1, 0x33ffffff) if has_light?
+    shade.draw(position.x, position.y, z_order, 1, 1, 0x33ffffff) if has_shade?
+    feature.draw(position.x, position.y, z_order, 1, 1, 0x33ffffff) if has_feature?
+  end
 end
 
 #I love this in ruby, write a struct, then have it automagically
@@ -102,5 +109,12 @@ class Point < Struct.new(:x, :y)
     if(name.length == 1 && args.length == 1)
       Point.new(x.send(name, args.first.x), y.send(name, args.first.y))
     end
+  end
+end
+
+#Monkey path numeric to be useful
+class Numeric
+  def clamp min, max
+    [[self, max].min, min].max
   end
 end
