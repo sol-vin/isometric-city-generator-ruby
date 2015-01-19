@@ -1,9 +1,9 @@
 require 'perlin'
 
 class IsometricFactory
-  PERLIN_NOISE_STEP = 0.08
-  OFFSET = Point.new(600, 300)
-  MAX_HEIGHT = 20
+  PERLIN_NOISE_STEP = 0.02
+  OFFSET = Point.new(0, 0)
+  MAX_HEIGHT = 10
 
   attr_reader :perlin_noise
   attr_reader :size_x, :size_y
@@ -22,7 +22,7 @@ class IsometricFactory
   end
 
   def randomize
-    @perlin_noise = Perlin::Generator.new(rand(1000), 1.0, 1)
+    @perlin_noise = Perlin::Generator.new(rand(1000), 2.0, 1)
   end
 
   def self.get_tile_position(x, y)
@@ -49,9 +49,17 @@ class IsometricFactory
     position
   end
 
+  def get_perlin_noise(x, y)
+    @perlin_noise[x * PERLIN_NOISE_STEP, y * PERLIN_NOISE_STEP]
+  end
+
   #Finds if there is a block at the specified location
-  def is_block_at?(x,y,z)
-    (@perlin_noise[x * PERLIN_NOISE_STEP, y * PERLIN_NOISE_STEP] * MAX_HEIGHT).round >= z
+  def is_perlin_block_at?(x, y, z)
+    (get_perlin_noise(x, y) * MAX_HEIGHT).round >= z
+  end
+
+  def is_city_block_at?(x, y, z)
+    false
   end
 
   def draw_grid
@@ -69,15 +77,30 @@ class IsometricFactory
     Assets.get_block_asset(:base_block).draw(position, 1, @colors[color_index])
   end
 
-  def draw_blocks
-
-
+  def draw_perlin_blocks
     size_x.times do |x|
       size_y.times do |y|
-        height = (@perlin_noise[x * PERLIN_NOISE_STEP, y * PERLIN_NOISE_STEP] * MAX_HEIGHT).round
+        height = (get_perlin_noise(x, y) * MAX_HEIGHT).round
         height.times do |z|
           #skip drawing this block if we can't see it anyways.
-          next if is_block_at?(x + 1, y + 1, z + 1) && x == size_x && y != size_y
+          next if is_perlin_block_at?(x + 1, y + 1, z + 1) && x == size_x && y != size_y
+          draw_block(x,y,z)
+        end
+      end
+    end
+  end
+
+  def draw_city
+    size_x.times do |x|
+      size_y.times do |y|
+        height = (get_perlin_noise(x, y) * MAX_HEIGHT).round
+        #should we have a building here?
+        build_value = "0.#{get_perlin_noise(x,y).to_s[-2..-1]}".to_f * 4
+        next if build_value > get_perlin_noise(x, y)
+
+        height.times do |z|
+          #skip drawing this block if we can't see it anyways.
+          next if is_city_block_at?(x + 1, y + 1, z + 1) && x == size_x && y != size_y
           draw_block(x,y,z)
         end
       end

@@ -2,7 +2,6 @@
 
 require './assets.rb'
 require './isometric_factory.rb'
-require 'devil/gosu'
 require 'method_profiler'
 
 include Gosu
@@ -20,7 +19,8 @@ class Game < Window
 
     @camera = Point.new(0,0)
 
-    @iso_factory = IsometricFactory.new(40, 40)
+    @iso_factory = IsometricFactory.new(300, 300)
+    @draw_mode = :draw_perlin_blocks
   end
 
   def update
@@ -35,15 +35,24 @@ class Game < Window
 
     @camera.y -= CAMERA_SPEED if button_down? KbDown
     @camera.y += CAMERA_SPEED if button_down? KbUp
+    if button_down? KbP
+      @draw_mode = :draw_perlin_blocks
+      @image = nil
+    end
+
+    if button_down? KbO
+      @draw_mode = :draw_city
+      @image = nil
+    end
 
     self.caption = "Isometric City Generator fps: #{Gosu.fps}"
   end
 
   def draw
     #draw first
-    @image ||= record(1800, 1000) do
+    @image ||= record(1, 1) do
       @iso_factory.draw_grid
-      @iso_factory.draw_blocks
+      @iso_factory.send(@draw_mode)
     end
     translate(@camera.x, @camera.y) do
       @image.draw(0, 0, 1)
@@ -61,7 +70,7 @@ class Game < Window
   end
 end
 
-profiler = MethodProfiler.observe(IsometricFactory)
+#profiler = MethodProfiler.observe(IsometricFactory)
 Game.new.show
-puts profiler.report
+#puts profiler.report
 
