@@ -77,14 +77,14 @@ class IsometricFactory
     size_x.times do |x|
       size_y.times do |y|
         position = self.class.get_tile_position(x,y)
-        Assets.get_tile_image(:base_tile).draw(position.x, position.y, 1, 1, 1, 0xffffffff)
+        Assets.get_tile_image(:tile).draw(position.x, position.y, 1, 1, 1, 0xffffffff)
       end
     end
   end
 
   def draw_block(x, y, z, color)
     position = IsometricFactory.get_block_position(x, y, z)
-    Assets.get_block_asset(:base_block).draw(position, 1, color)
+    Assets.get_block_asset(:block).draw(position, 1, color)
   end
 
   def draw_perlin_blocks
@@ -112,7 +112,8 @@ class IsometricFactory
         height.times do |z|
           #skip drawing this block if we can't see it anyways.
           next if is_city_block_at?(x + 1, y + 1, z + 1) && x == size_x && y != size_y
-          draw_block(x,y,z, 0xffffffff)
+          color_index = ((z / MAX_HEIGHT.to_f).clamp(0, 1.0)*@perlin_colors.length).to_i
+          draw_block(x,y,z,@perlin_colors[color_index])
         end
       end
     end

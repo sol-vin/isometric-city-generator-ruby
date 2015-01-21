@@ -1,29 +1,74 @@
 require 'rubygems'
 require 'gosu'
 
+require './block_asset.rb'
+
 #Holds image resources
 class Assets
+  #On use of class level variables
+  #   These are safe because you are not allowed to inherit Assets
+  #   See inherited hook @ bottom of class definition
+
   #Holds tile assets
   @@tiles = {}
 
   #Holds block assets
   @@blocks = {}
 
+  #holds feature assets
+  @@features = {}
+
   #Load the assets
   def self.load_assets game
-    raise ArgumentError.new('Did not supply a valid Gosu window!') unless game.is_a? Window
+    raise ArgumentError.new('Did not supply a valid Gosu window!') unless game.is_a? Gosu::Window
 
     content_path = File.dirname(File.absolute_path(__FILE__)) + '/content/'
+    Dir.entries(content_path).each do |folder|
+      next if folder =~ /^\.*$/
+      Dir.entries(content_path + folder).each do |filename|
+        next if filename =~ /^\.*$/
+        name = filename.split('.').first.to_sym
+        if(folder == 'blocks')
+          #check to see of if image exists
+          base, light, shade, feature = nil
 
-    @@tiles[:base_tile] = Gosu::Image.new(game, content_path + 'floor/tile.png', false)
+          #try to assign images if they exist
+          blocks_path = content_path + 'blocks/' + name.to_s + '/'
+          base = Gosu::Image.new(game, blocks_path + "#{name}.png") if File.exists? (blocks_path + "#{name}.png")
+          light = Gosu::Image.new(game, blocks_path + "#{name}_light.png") if File.exists? (blocks_path + "#{name}_light.png")
+          shade = Gosu::Image.new(game, blocks_path + "#{name}_shade.png") if File.exists? (blocks_path + "#{name}_shade.png")
+          feature = Gosu::Image.new(game, blocks_path + "#{name}_feature.png") if File.exists? (blocks_path + "#{name}_feature.png")
 
-    block = Gosu::Image.new(game, (content_path + 'building/block.png'), false)
-    block_light = Gosu::Image.new(game, (content_path + 'building/block_light.png'), false)
-    block_shade = Gosu::Image.new(game, (content_path + 'building/block_shade.png'), false)
+          @@blocks[name] = BlockAsset.new(base, light, shade, feature)
+        else
+          class_variable_get('@@' + folder)[name] = Gosu::Image.new(game, content_path + folder + '/' + filename, false)
+        end
+      end
+    end
+    true
+  end
 
-    @@blocks[:base_block] = BlockAsset.new(block,
-                                           block_light,
-                                           block_shade)
+  def self.roads
+    @@tiles.keys.select {|key| key.to_s =~ /^road/}
+  end
+
+  def self.roofs
+    @@blocks.keys.select {|key| key.to_s =~ /^roof/}
+  end
+
+  def self.windows
+    @@features.keys.select {|key| key.to_s =~ /^window/}
+  end
+
+  def self.doors
+    @@features.keys.select {|key| key.to_s =~ /^door/}
+  end
+
+  def self.get_feature_image type
+    raise ArgumentError.new('Type must be a symbol!') unless type.is_a? Symbol
+    #commented out because during testing returns false because Assets.load_asset can't be called :(
+    #raise ArgumentError unless @@blocks.keys.include? type
+    @@features[type]
   end
 
   #Get a block asset from @@blocks
@@ -41,62 +86,28 @@ class Assets
   end
 
   def self.block_width
-    @@blocks[:base_block].width
+    @@blocks[:block].width
   end
 
   def self.block_height
-    @@blocks[:base_block].height
+    @@blocks[:block].height
   end
 
   def self.tile_width
-    @@tiles[:base_tile].width
+    @@tiles[:tile].width
   end
 
   def self.tile_height
-    @@tiles[:base_tile].height
+    @@tiles[:tile].height
+  end
+
+  #Stops class from being inherited. (sealed in C#)
+  def self.inherited base
+    raise RuntimeError.new 'You are not allowed to inherit the Assets class!'
   end
 end
 
-#Used to hold block images and shading/lighting as well as an add-on feature
-class BlockAsset
-  attr_reader :base, :light, :shade, :feature
 
-  def initialize(base_image, light_image = nil, shade_image = nil, feature_image = nil)
-    raise ArgumentError if base_image.nil?
-
-    @base = base_image
-    @light = light_image
-    @shade = shade_image
-    @feature = feature_image
-  end
-
-  def has_light?
-    @light.nil?
-  end
-
-  def has_shade?
-    @shade.nil?
-  end
-
-  def has_feature?
-    @shade.nil?
-  end
-
-  def width
-    @base.width
-  end
-
-  def height
-    @base.height
-  end
-
-  def draw(position, z_order, color)
-    base.draw(position.x, position.y, z_order, 1, 1, color)
-    light.draw(position.x, position.y, z_order, 1, 1, 0x33ffffff) if has_light?
-    shade.draw(position.x, position.y, z_order, 1, 1, 0x33ffffff) if has_shade?
-    feature.draw(position.x, position.y, z_order, 1, 1, 0x33ffffff) if has_feature?
-  end
-end
 
 #I love this in ruby, write a struct, then have it automagically
 #write all the arithmetic for you.

@@ -10,9 +10,10 @@ include Gosu
 class Game < Window
 
   CAMERA_SPEED = 10
-
+  SIZE_X = 100
+  SIZE_Y = 100
   def initialize
-    super(1000, 600, false)
+    super(1800, 1000, false)
 
     Gosu::enable_undocumented_retrofication
 
@@ -20,7 +21,7 @@ class Game < Window
 
     @camera = Point.new(0,0)
 
-    @iso_factory = IsometricFactory.new(rand(10000), 100, 100)
+    @iso_factory = IsometricFactory.new(rand(10000), SIZE_X, SIZE_Y)
     @draw_mode = :draw_perlin_blocks
     @render_mode = :draw_easy
 
@@ -58,7 +59,7 @@ class Game < Window
     close if @close_button.is_down?
 
     if @random_button.was_pressed?
-      @iso_factory = IsometricFactory.new(rand(10000), 100, 100)
+      @iso_factory = IsometricFactory.new(rand(10000), SIZE_X, SIZE_Y)
       @image = nil
     end
 
@@ -115,11 +116,11 @@ class Game < Window
 
   def draw_vision_test
     position = IsometricFactory.get_block_position(0,0,0)
-    Assets.get_block_asset(:base_block).draw(position, 1, 0xffffffff)
+    Assets.get_block_asset(:block).draw(position, 1, 0xffffffff)
 
     1.times do |z|
       position = IsometricFactory.get_block_position(1, 1, z)
-      Assets.get_block_asset(:base_block).draw(position, 1, 0xffffffff)
+      Assets.get_block_asset(:block).draw(position, 1, 0xffffffff)
     end
   end
 end
