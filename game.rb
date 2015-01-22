@@ -1,8 +1,11 @@
 #! /usr/bin/env ruby
 
+require './key.rb'
 require './assets.rb'
 require './isometric_factory.rb'
-require './key.rb'
+require './perlin_factory.rb'
+require './city_factory.rb'
+
 require 'method_profiler'
 
 include Gosu
@@ -21,8 +24,8 @@ class Game < Window
 
     @camera = Point.new(0,0)
 
-    @iso_factory = IsometricFactory.new(rand(10000), SIZE_X, SIZE_Y)
-    @draw_mode = :draw_perlin_blocks
+    @seed = rand(10000)
+    @iso_factory = PerlinFactory.new(@seed, SIZE_X, SIZE_Y)
     @render_mode = :draw_easy
 
     @close_button = Key.new KbEscape
@@ -59,7 +62,8 @@ class Game < Window
     close if @close_button.is_down?
 
     if @random_button.was_pressed?
-      @iso_factory = IsometricFactory.new(rand(10000), SIZE_X, SIZE_Y)
+      @seed = rand(10000)
+      @iso_factory = @iso_factory.class.new(@seed, SIZE_X, SIZE_Y)
       @image = nil
     end
 
@@ -70,12 +74,12 @@ class Game < Window
     @camera.y += CAMERA_SPEED if button_down? KbUp
 
     if @perlin_button.was_pressed?
-      @draw_mode = :draw_perlin_blocks
+      @iso_factory = PerlinFactory.new(@seed, SIZE_X, SIZE_Y)
       @image = nil
     end
 
     if @city_button.was_pressed?
-      @draw_mode = :draw_city
+      @iso_factory = CityFactory.new(@seed, SIZE_X, SIZE_Y)
       @image = nil
     end
 
@@ -100,7 +104,7 @@ class Game < Window
   def draw_easy
     @image ||= record(1, 1) do
       @iso_factory.draw_grid
-      @iso_factory.send(@draw_mode)
+      @iso_factory.draw_blocks
     end
     translate(@camera.x, @camera.y) do
       @image.draw(0, 0, 1)
@@ -110,17 +114,7 @@ class Game < Window
   def draw_hard
     translate(@camera.x, @camera.y) do
       @iso_factory.draw_grid
-      @iso_factory.send(@draw_mode)
-    end
-  end
-
-  def draw_vision_test
-    position = IsometricFactory.get_block_position(0,0,0)
-    Assets.get_block_asset(:block).draw(position, 1, 0xffffffff)
-
-    1.times do |z|
-      position = IsometricFactory.get_block_position(1, 1, z)
-      Assets.get_block_asset(:block).draw(position, 1, 0xffffffff)
+      @iso_factory.draw_blocks
     end
   end
 end

@@ -25,10 +25,12 @@ class Assets
     content_path = File.dirname(File.absolute_path(__FILE__)) + '/content/'
     Dir.entries(content_path).each do |folder|
       next if folder =~ /^\.*$/
+
       Dir.entries(content_path + folder).each do |filename|
         next if filename =~ /^\.*$/
         name = filename.split('.').first.to_sym
         if(folder == 'blocks')
+
           #check to see of if image exists
           base, light, shade, feature = nil
 
@@ -64,24 +66,20 @@ class Assets
     @@features.keys.select {|key| key.to_s =~ /^door/}
   end
 
+  def self.is_type_buildable? type
+    !(roads.include?(type) || roofs.include?(type) || type.nil?)
+  end
+
   def self.get_feature_image type
-    raise ArgumentError.new('Type must be a symbol!') unless type.is_a? Symbol
-    #commented out because during testing returns false because Assets.load_asset can't be called :(
-    #raise ArgumentError unless @@blocks.keys.include? type
     @@features[type]
   end
 
   #Get a block asset from @@blocks
   def self.get_block_asset type
-    raise ArgumentError.new('Type must be a symbol!') unless type.is_a? Symbol
-    #commented out because during testing returns false because Assets.load_asset can't be called :(
-    #raise ArgumentError unless @@blocks.keys.include? type
     @@blocks[type]
   end
 
   def self.get_tile_image type
-    raise ArgumentError unless type.is_a? Symbol
-    #raise ArgumentError unless @@tile.keys.include? type
     @@tiles[type]
   end
 
@@ -107,8 +105,6 @@ class Assets
   end
 end
 
-
-
 #I love this in ruby, write a struct, then have it automagically
 #write all the arithmetic for you.
 class Point < Struct.new(:x, :y)
@@ -123,7 +119,7 @@ class Point < Struct.new(:x, :y)
   end
 end
 
-#Monkey path numeric to be useful
+#Monkey patch numeric to be useful
 class Numeric
   def clamp min, max
     [[self, max].min, min].max
