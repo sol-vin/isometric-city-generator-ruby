@@ -2,18 +2,14 @@ require 'perlin'
 require './assets.rb'
 
 class IsometricFactory
-  PERLIN_STEP = 0.02
-  PERLIN_OCTAVE = 8
-  PERLIN_PERSIST = 0
-  PERLIN_VALUE_MULTIPLIER = 9
+
   OFFSET = Point.new(0, 0)
   MAX_HEIGHT = 6
 
+  VIEWS = {west_south: :north_west, north_west: :east_north, east_north: :south_east, south_east: :west_south}
 
-
-  attr_reader :perlin_noise
   attr_reader :size_x, :size_y
-  attr_reader :seed
+  attr_reader :view
 
   def self.get_tile_position(x, y)
     spacing = Point.new((Assets.tile_width/2.0).round, (Assets.tile_height/2.0).round)
@@ -27,12 +23,10 @@ class IsometricFactory
     position
   end
 
-  def initialize(seed, size_x, size_y)
+  def initialize(size_x, size_y)
     @size_x = size_x
     @size_y = size_y
-    @seed = seed
-
-    @perlin_noise = Perlin::Generator.new(seed, PERLIN_PERSIST, PERLIN_OCTAVE)
+    @view = :north_west
   end
 
   def get_tile_type(x, y)
@@ -43,30 +37,9 @@ class IsometricFactory
     (is_block_at?(x, y ,z) ? :block : nil)
   end
 
-  def is_tile_buildable?(x, y)
-    Assets.is_type_buildable?(get_tile_type(x, y))
+  def is_block_at(x, y, z)
+    true
   end
-
-  def is_block_buildable?(x, y, z)
-    no_block_above = !is_block_at?(x, y, z + 1)
-    block_below = is_block_at?(x, y, z - 1)
-    block_below_buildable = Assets.is_type_buildable?(get_block_type(x, y, z - 1))
-    (no_block_above && ((block_below && block_below_buildable) || is_tile_buildable?(x, y)) )
-  end
-
-  def get_perlin_noise(x, y)
-    (@perlin_noise[x * PERLIN_STEP, y * PERLIN_STEP] + 1) / 2.0
-  end
-
-  def get_perlin_value(x, y)
-    "0.#{get_perlin_noise(x,y).to_s[-2..-1]}".to_f * PERLIN_VALUE_MULTIPLIER
-  end
-
-  #Finds if there is a block at the specified location
-  def is_block_at?(x, y, z)
-    (get_perlin_noise(x, y) * MAX_HEIGHT).round >= z
-  end
-
 
   def draw_grid
     size_x.times do |x|
@@ -77,12 +50,38 @@ class IsometricFactory
     end
   end
 
-  def draw_block(x, y, z, color)
-    position = IsometricFactory.get_block_position(x, y, z)
+  def draw_block(x_pos, y_pos, x, y, z, color)
+    position = IsometricFactory.get_block_position(x_pos, y_pos, z)
     Assets.get_block_asset(get_block_type(x, y, z)).draw(position, 1, color)
   end
 
   def draw_blocks
 
+  end
+
+  def rotate_counter_clockwise
+    @view = VIEWS[view]
+  end
+
+  def rotate_clockwise
+    @view = VIEWS.invert[view]
+  end
+
+  def get_view_ranges
+    x_ranges = {east: {start: size_x, end: 0}, west: {start: 0, end: size_x}}
+    y_ranges = {north:  {start: size_y, end: 0}, south:  {start: 0, end: size_y}}
+    views = view.to_s.split('_').map {|s| s.to_sym}
+    ranges = {}
+    ranges[:x] = x_ranges[((views.first.length == 4) ? views.first : views.last)]
+    ranges[:y] = y_ranges[((views.first.length == 5) ? views.first : views.last)]
+    enums = ranges.map do |key, value|
+      if value[:start] > value[:end]
+        enum = (value[:start] - 1).downto(value[:end]).to_a
+      else
+        enum = value[:start].upto(value[:end] - 1).to_a
+      end
+      [key, enum]
+    end
+    Hash[enums]
   end
 end

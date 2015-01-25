@@ -1,8 +1,19 @@
 class Key
+  @@keys = []
+
+  def self.update_keys window
+    @@keys.each {|key| key.update window}
+  end
+
+  def self.post_update_keys window
+    @@keys.each {|key| key.post_update window}
+  end
+
   attr_reader :key, :last, :current
 
   def initialize key
     @key = key
+    @@keys << self
   end
 
   def update window

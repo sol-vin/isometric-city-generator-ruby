@@ -13,8 +13,8 @@ include Gosu
 class Game < Window
 
   CAMERA_SPEED = 10
-  SIZE_X = 100
-  SIZE_Y = 100
+  SIZE_X = 50
+  SIZE_Y = 50
   def initialize
     super(1800, 1000, false)
 
@@ -24,8 +24,7 @@ class Game < Window
 
     @camera = Point.new(0,0)
 
-    @seed = rand(10000)
-    @iso_factory = PerlinFactory.new(@seed, SIZE_X, SIZE_Y)
+    @iso_factory = CityFactory.new(rand(10000), SIZE_X, SIZE_Y)
     @render_mode = :draw_easy
 
     @close_button = Key.new KbEscape
@@ -34,36 +33,17 @@ class Game < Window
     @city_button = Key.new KbO
     @draw_easy_button = Key.new KbG
     @draw_hard_button = Key.new KbH
-  end
-
-  def update_keys
-
-
-    @close_button.update self
-    @random_button.update self
-    @perlin_button.update self
-    @city_button.update self
-    @draw_easy_button.update self
-    @draw_hard_button.update self
-  end
-
-  def post_update_keys
-    @close_button.post_update self
-    @random_button.post_update self
-    @perlin_button.post_update self
-    @city_button.post_update self
-    @draw_easy_button.post_update self
-    @draw_hard_button.post_update self
+    @rotate_cw_button = Key.new KbQ
+    @rotate_ccw_button = Key.new KbW
   end
 
   def update
-    update_keys
+    Key.update_keys self
 
     close if @close_button.is_down?
 
     if @random_button.was_pressed?
-      @seed = rand(10000)
-      @iso_factory = @iso_factory.class.new(@seed, SIZE_X, SIZE_Y)
+      @iso_factory.seed = rand(10000)
       @image = nil
     end
 
@@ -74,12 +54,12 @@ class Game < Window
     @camera.y += CAMERA_SPEED if button_down? KbUp
 
     if @perlin_button.was_pressed?
-      @iso_factory = PerlinFactory.new(@seed, SIZE_X, SIZE_Y)
+      @iso_factory.draw_mode = :perlin
       @image = nil
     end
 
     if @city_button.was_pressed?
-      @iso_factory = CityFactory.new(@seed, SIZE_X, SIZE_Y)
+      @iso_factory.draw_mode = :city
       @image = nil
     end
 
@@ -91,9 +71,19 @@ class Game < Window
       @render_mode = :draw_easy
     end
 
-    self.caption = "Isometric City Generator fps: #{Gosu.fps} rm: #{@render_mode}"
+    if @rotate_ccw_button.was_pressed?
+      @iso_factory.rotate_counter_clockwise
+      @image = nil
+    end
 
-    post_update_keys
+    if @rotate_cw_button.was_pressed?
+      @iso_factory.rotate_clockwise
+      @image = nil
+    end
+
+    self.caption = "Isometric City Generator fps: #{Gosu.fps} rm: #{@render_mode} seed: #{@iso_factory.seed}"
+
+    Key.post_update_keys self
   end
 
   def draw
