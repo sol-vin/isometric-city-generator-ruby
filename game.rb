@@ -8,9 +8,9 @@ require './city_factory.rb'
 
 require 'method_profiler'
 
-include Gosu
+require 'gosu'
 
-class Game < Window
+class Game < Gosu::Window
 
   CAMERA_SPEED = 10
   SIZE_X = 50
@@ -20,21 +20,21 @@ class Game < Window
 
     Gosu::enable_undocumented_retrofication
 
-    Assets::load_assets self
+    Assets::load_assets
 
-    @camera = Point.new(0,0)
+    @camera = Vector2.new(0,0)
 
-    @iso_factory = CityFactory.new(rand(10000), SIZE_X, SIZE_Y)
+    @city_factory = CityFactory.new(rand(100000000), SIZE_X, SIZE_Y)
     @render_mode = :draw_easy
 
-    @close_button = Key.new KbEscape
-    @random_button = Key.new KbSpace
-    @perlin_button = Key.new KbP
-    @city_button = Key.new KbO
-    @draw_easy_button = Key.new KbG
-    @draw_hard_button = Key.new KbH
-    @rotate_cw_button = Key.new KbQ
-    @rotate_ccw_button = Key.new KbW
+    @close_button = Key.new Gosu::KbEscape
+    @random_button = Key.new Gosu::KbSpace
+    @perlin_button = Key.new Gosu::KbP
+    @city_button = Key.new Gosu::KbO
+    @draw_easy_button = Key.new Gosu::KbG
+    @draw_hard_button = Key.new Gosu::KbH
+    @rotate_cw_button = Key.new Gosu::KbQ
+    @rotate_ccw_button = Key.new Gosu::KbW
   end
 
   def update
@@ -43,23 +43,23 @@ class Game < Window
     close if @close_button.is_down?
 
     if @random_button.was_pressed?
-      @iso_factory.seed = rand(10000)
+      @city_factory.seed = rand(10000)
       @image = nil
     end
 
-    @camera.x -= CAMERA_SPEED if button_down? KbRight
-    @camera.x += CAMERA_SPEED if button_down? KbLeft
+    @camera.x -= CAMERA_SPEED if button_down? Gosu::KbRight
+    @camera.x += CAMERA_SPEED if button_down? Gosu::KbLeft
 
-    @camera.y -= CAMERA_SPEED if button_down? KbDown
-    @camera.y += CAMERA_SPEED if button_down? KbUp
+    @camera.y -= CAMERA_SPEED if button_down? Gosu::KbDown
+    @camera.y += CAMERA_SPEED if button_down? Gosu::KbUp
 
     if @perlin_button.was_pressed?
-      @iso_factory.draw_mode = :perlin
+      @city_factory.draw_mode = :perlin
       @image = nil
     end
 
     if @city_button.was_pressed?
-      @iso_factory.draw_mode = :city
+      @city_factory.draw_mode = :city
       @image = nil
     end
 
@@ -72,16 +72,16 @@ class Game < Window
     end
 
     if @rotate_ccw_button.was_pressed?
-      @iso_factory.rotate_counter_clockwise
+      @city_factory.rotate_counter_clockwise
       @image = nil
     end
 
     if @rotate_cw_button.was_pressed?
-      @iso_factory.rotate_clockwise
+      @city_factory.rotate_clockwise
       @image = nil
     end
 
-    self.caption = "Isometric City Generator fps: #{Gosu.fps} rm: #{@render_mode} seed: #{@iso_factory.seed}"
+    self.caption = "Isometric City Generator fps: #{Gosu.fps} rm: #{@render_mode} seed: #{@city_factory.seed}"
 
     Key.post_update_keys self
   end
@@ -93,8 +93,8 @@ class Game < Window
 
   def draw_easy
     @image ||= record(1, 1) do
-      @iso_factory.draw_grid
-      @iso_factory.draw_blocks
+      @city_factory.draw_grid
+      @city_factory.draw_blocks
     end
     translate(@camera.x, @camera.y) do
       @image.draw(0, 0, 1)
@@ -103,8 +103,8 @@ class Game < Window
 
   def draw_hard
     translate(@camera.x, @camera.y) do
-      @iso_factory.draw_grid
-      @iso_factory.draw_blocks
+      @city_factory.draw_grid
+      @city_factory.draw_blocks
     end
   end
 end

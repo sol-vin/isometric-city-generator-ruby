@@ -2,15 +2,14 @@ require './isometric_factory.rb'
 
 class CityFactory < PerlinFactory
 
-  attr_accessor :draw_mode
+  BUILDING_CHANCE = 5
 
   def initialize(seed, size_x, size_y)
     super(seed, size_x, size_y)
-    @draw_mode = :perlin
   end
 
   def is_building_at?(x, y)
-    (get_perlin_value(x, y) < get_perlin_noise(x, y))
+    get_perlin_value(x, y, 0, BUILDING_CHANCE) == 0
   end
 
   def is_tile_buildable?(x, y)
@@ -25,11 +24,7 @@ class CityFactory < PerlinFactory
   end
 
   def is_block_at?(x, y, z)
-    if draw_mode == :city
-      super(x, y, z) && is_building_at?(x, y)
-    elsif draw_mode == :perlin
-      super(x, y, z)
-    end
+    super(x, y, z) && is_building_at?(x, y)
   end
 
   def draw_grid
@@ -42,23 +37,31 @@ class CityFactory < PerlinFactory
   end
 
   def draw_blocks
-    if draw_mode == :city
-      ranges = get_view_ranges
+    ranges = get_view_ranges
+    if view == :north_west || view == :south_east
       ranges[:x].each_with_index do |x, x_pos|
         ranges[:y].each_with_index do |y, y_pos|
           next unless is_building_at?(x, y)
-
+          get_perlin_height(x, y).times do |z|
+            #skip drawing this block if we can't see it anyways.
+            next if get_block_type(x, y, z).nil?
+            draw_block(x_pos, y_pos, z, x, y, z)
+          end
+        end
+      end
+    end
+    if view == :south_west || view == :north_east
+      ranges[:y].each_with_index do |y, y_pos|
+        ranges[:x].each_with_index do |x, x_pos|
+          next unless is_building_at?(x, y)
           height = get_perlin_height(x, y)
           height.times do |z|
             #skip drawing this block if we can't see it anyways.
             next if get_block_type(x, y, z).nil?
-            color_index = ((z / MAX_HEIGHT.to_f).clamp(0, 1.0)*@perlin_colors.length).to_i
-            draw_block(x_pos, y_pos, x, y, z,@perlin_colors[color_index])
+            draw_block(x_pos, y_pos, z, x, y, z)
           end
         end
       end
-    elsif draw_mode == :perlin
-      super
     end
   end
 end

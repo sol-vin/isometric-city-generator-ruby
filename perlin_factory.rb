@@ -22,6 +22,18 @@ class PerlinFactory < IsometricFactory
     @perlin_colors << 0xff744268
   end
 
+  #overridden methods
+  def is_block_at?(x, y, z)
+    (get_perlin_noise(x, y) * MAX_HEIGHT).round >= z
+  end
+ 
+  def get_block_color(x, y, z)
+    color_index = ((z / MAX_HEIGHT.to_f).clamp(0, 1.0)*@perlin_colors.length).to_i
+    @perlin_colors[color_index]
+  end
+
+  #new methods
+
   def seed=(value)
     @seed = value
     @perlin_noise = Perlin::Generator.new(seed, PERLIN_PERSIST, PERLIN_OCTAVE)
@@ -39,28 +51,39 @@ class PerlinFactory < IsometricFactory
     (@perlin_noise[x * PERLIN_STEP, y * PERLIN_STEP, z * PERLIN_STEP] + 1) / 2.0
   end
 
-  def get_perlin_value(x, y)
-    "0.#{get_perlin_noise(x,y).to_s[-2..-1]}".to_f * PERLIN_VALUE_MULTIPLIER
+  def get_perlin_value(x, y, low, high)
+    throw Exception.new("start must be less than end!") if low > high
+    (get_perlin_noise(x,y).to_s[-6..-1].to_i % (high-low)) + low
   end
 
-  def get_perlin_value_3d(x, y, z)
-    "0.#{get_perlin_noise_3d(x, y, z).to_s[-2..-1]}".to_f * PERLIN_VALUE_MULTIPLIER
-  end
-
-  def is_block_at?(x, y, z)
-    (get_perlin_noise(x, y) * MAX_HEIGHT).round >= z
+  def get_perlin_value_3d(x, y, z, low, high)
+    throw Exception.new("start must be less than end!") if low > high
+    (get_perlin_noise_3d(x,y,z).to_s[-6..-1].to_i % (high-low)) + low
   end
 
   def draw_blocks
     ranges = get_view_ranges
-    ranges[:x].each_with_index do |x, x_pos|
+    if view == :south_west || view == :north_east
+      ranges[:x].each_with_index do |x, x_pos|
+        ranges[:y].each_with_index do |y, y_pos|
+          height = get_perlin_height(x, y)
+          height.times do |z|
+            #skip drawing this block if we can't see it anyways.
+            next if get_block_type(x, y, z).nil?
+            draw_block(x_pos, y_pos, z, x, y, z)
+          end
+        end
+      end
+    end
+    if view == :north_west || view == :south_east
       ranges[:y].each_with_index do |y, y_pos|
-        height = get_perlin_height(x, y)
-        height.times do |z|
-          #skip drawing this block if we can't see it anyways.
-          next if get_block_type(x, y, z).nil?
-          color_index = ((z / MAX_HEIGHT.to_f).clamp(0, 1.0)*@perlin_colors.length).to_i
-          draw_block(x_pos, y_pos, x, y, z,@perlin_colors[color_index])
+        ranges[:x].each_with_index do |x, x_pos|
+          height = get_perlin_height(x, y)
+          height.times do |z|
+            #skip drawing this block if we can't see it anyways.
+            next if get_block_type(x, y, z).nil?
+            draw_block(x_pos, y_pos, z, x, y, z)
+          end
         end
       end
     end

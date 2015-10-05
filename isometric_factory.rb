@@ -3,11 +3,11 @@ require './assets.rb'
 
 class IsometricFactory
 
-  OFFSET = Point.new(0, 0)
+  OFFSET = Vector2.new(0, 0)
   MAX_HEIGHT = 6
 
   #Hash of direction keys, which way the camera is facing and what direction is facing clockwise
-  VIEWS = {west_south: :north_west, north_west: :east_north, east_north: :south_east, south_east: :west_south}
+  VIEWS = {south_west: :north_west, north_west: :north_east, north_east: :south_east, south_east: :south_west}
 
   #Size of the landscape
   attr_reader :size_x, :size_y
@@ -16,8 +16,8 @@ class IsometricFactory
 
   #gets the actual position of a tile based on its index
   def self.get_tile_position(x, y)
-    spacing = Point.new((Assets.tile_width/2.0).round, (Assets.tile_height/2.0).round)
-    Point.new((-x * spacing.x) + (y * spacing.x) - y + x + OFFSET.x,
+    spacing = Vector2.new((Assets.tile_width/2.0).round, (Assets.tile_height/2.0).round)
+    Vector2.new((-x * spacing.x) + (y * spacing.x) - y + x + OFFSET.x,
               (x * spacing.y) + (y*spacing.y) - y - x + OFFSET.y)
   end
   
@@ -39,13 +39,23 @@ class IsometricFactory
     :tile
   end
 
+  #get the color of a tile at index
+  def get_tile_color(x, y)
+    0xffffffff
+  end
+
   #finds out what kind of block is at an index
   def get_block_type(x, y, z)
     (is_block_at?(x, y ,z) ? :block : nil)
   end
+
+  #get the color of a block at an index
+  def get_block_color(x, y, z)
+    0xffffffff
+  end
   
   #is there a block at index?
-  def is_block_at(x, y, z)
+  def is_block_at?(x, y, z)
     true
   end
   
@@ -60,9 +70,11 @@ class IsometricFactory
   end
 
   #draw a single block
-  def draw_block(x_pos, y_pos, x, y, z, color)
-    position = IsometricFactory.get_block_position(x_pos, y_pos, z)
-    Assets.get_block_asset(get_block_type(x, y, z)).draw(position, 1, color)
+  #x_pos, y_pos, z_pos drawn position of the block
+  #x, y, z, index of the block we want to draw at x_pos, y_pos, z_pos
+  def draw_block(x_pos, y_pos, z_pos, x, y, z)
+    position = IsometricFactory.get_block_position(x_pos, y_pos, z_pos)
+    Assets.get_block_asset(get_block_type(x, y, z)).draw(position, 1, get_block_color(x, y, z))
   end
 
   #draw all the blocks
@@ -79,20 +91,25 @@ class IsometricFactory
   def rotate_clockwise
     @view = VIEWS.invert[view]
   end
+
+  #dumps all the blocks in a specific region to a stream
+  def dump_blocks(stream, x_start, y_start, z_start, x_end, y_end, z_end)
+
+  end
   
   #find the angle for drawing the blocks 
   def get_view_ranges
-    x_ranges = {east: {start: size_x, end: 0}, west: {start: 0, end: size_x}}
-    y_ranges = {north:  {start: size_y, end: 0}, south:  {start: 0, end: size_y}}
+    x_ranges = {east: {start: 0, end: @size_x-1}, west: {start: @size_x-1, end: 0}}
+    y_ranges = {north:  {start: @size_y-1, end: 0}, south: {start: 0, end: @size_y-1}}
     views = view.to_s.split('_').map {|s| s.to_sym}
     ranges = {}
     ranges[:x] = x_ranges[((views.first.length == 4) ? views.first : views.last)]
     ranges[:y] = y_ranges[((views.first.length == 5) ? views.first : views.last)]
     enums = ranges.map do |key, value|
       if value[:start] > value[:end]
-        enum = (value[:start] - 1).downto(value[:end]).to_a
+        enum = value[:start].downto(value[:end])
       else
-        enum = value[:start].upto(value[:end] - 1).to_a
+        enum = value[:start].upto(value[:end])
       end
       [key, enum]
     end
