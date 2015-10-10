@@ -60,32 +60,4 @@ class PerlinFactory < IsometricFactory
     throw Exception.new("start must be less than end!") if low > high
     (get_perlin_noise_3d(x,y,z).to_s[-6..-1].to_i % (high-low)) + low
   end
-
-  def draw_blocks
-    ranges = get_view_ranges
-    if view == :south_west || view == :north_east
-      ranges[:x].each_with_index do |x, x_pos|
-        ranges[:y].each_with_index do |y, y_pos|
-          height = get_perlin_height(x, y)
-          height.times do |z|
-            #skip drawing this block if we can't see it anyways.
-            next if get_block_type(x, y, z).nil?
-            draw_block(x_pos, y_pos, z, x, y, z)
-          end
-        end
-      end
-    end
-    if view == :north_west || view == :south_east
-      ranges[:y].each_with_index do |y, y_pos|
-        ranges[:x].each_with_index do |x, x_pos|
-          height = get_perlin_height(x, y)
-          height.times do |z|
-            #skip drawing this block if we can't see it anyways.
-            next if get_block_type(x, y, z).nil?
-            draw_block(x_pos, y_pos, z, x, y, z)
-          end
-        end
-      end
-    end
-  end
 end

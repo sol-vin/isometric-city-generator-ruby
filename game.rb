@@ -13,8 +13,8 @@ require 'gosu'
 class Game < Gosu::Window
 
   CAMERA_SPEED = 10
-  SIZE_X = 50
-  SIZE_Y = 50
+  SIZE_X = 100
+  SIZE_Y = 100
   def initialize
     super(1800, 1000, false)
 
@@ -81,7 +81,7 @@ class Game < Gosu::Window
       @image = nil
     end
 
-    self.caption = "Isometric City Generator fps: #{Gosu.fps} rm: #{@render_mode} seed: #{@city_factory.seed}"
+    self.caption = "Isometric City Generator fps: #{Gosu.fps} rm: #{@render_mode} seed: #{@city_factory.seed} view: #{@city_factory.view}"
 
     Key.post_update_keys self
   end

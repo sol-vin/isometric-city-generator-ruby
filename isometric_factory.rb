@@ -7,7 +7,7 @@ class IsometricFactory
   MAX_HEIGHT = 6
 
   #Hash of direction keys, which way the camera is facing and what direction is facing clockwise
-  VIEWS = {south_west: :north_west, north_west: :north_east, north_east: :south_east, south_east: :south_west}
+  VIEWS = {north: :west, east: :north, south: :east, west: :south}
 
   #Size of the landscape
   attr_reader :size_x, :size_y
@@ -31,7 +31,7 @@ class IsometricFactory
   def initialize(size_x, size_y)
     @size_x = size_x
     @size_y = size_y
-    @view = :north_west
+    @view = :south
   end
 
   #finds out what kind of tile is at an index
@@ -58,28 +58,88 @@ class IsometricFactory
   def is_block_at?(x, y, z)
     true
   end
+
+  def draw_tile(x_pos, y_pos, x, y)
+    position = self.class.get_tile_position(x_pos, y_pos)
+    Assets.get_tile_image(get_tile_type(x, y)).draw(position.x, position.y, 1, 1, 1, get_tile_color(x, y))
+  end
   
   #draw phase for the grid
   def draw_grid
-    size_x.times do |x|
-      size_y.times do |y|
-        position = self.class.get_tile_position(x, y)
-        Assets.get_tile_image(get_tile_type(x, y)).draw(position.x, position.y, 1, 1, 1, 0xffffffff)
-      end
+    case view
+      when :south
+        size_y.times do |y|
+          size_x.times do |x|
+            draw_tile(x, y, x, y)
+          end
+        end
+      when :west
+        size_x.times do |y|
+          size_y.times do |x|
+            draw_tile(x, y, size_x - y, x)
+          end
+        end
+      when :north
+        size_y.times do |y|
+          size_x.times do |x|
+            draw_tile(x, y, size_x - x, size_y - y)
+          end
+        end
+      when :east
+        size_x.times do |y|
+          size_y.times do |x|
+            draw_tile(x, y, y, size_y - x)
+          end
+        end
     end
+
   end
 
   #draw a single block
   #x_pos, y_pos, z_pos drawn position of the block
   #x, y, z, index of the block we want to draw at x_pos, y_pos, z_pos
   def draw_block(x_pos, y_pos, z_pos, x, y, z)
+    return if get_block_type(x, y, z).nil?
     position = IsometricFactory.get_block_position(x_pos, y_pos, z_pos)
     Assets.get_block_asset(get_block_type(x, y, z)).draw(position, 1, get_block_color(x, y, z))
   end
 
   #draw all the blocks
   def draw_blocks
-    
+    case view
+      when :south
+        size_y.times do |y|
+          size_x.times do |x|
+            MAX_HEIGHT.times do |z|
+              draw_block(x, y, z, x, y, z)
+            end
+          end
+        end
+      when :west
+        size_x.times do |y|
+          size_y.times do |x|
+            MAX_HEIGHT.times do |z|
+              draw_block(x, y, z, size_x - y, x, z)
+            end
+          end
+        end
+      when :north
+        size_y.times do |y|
+          size_x.times do |x|
+            MAX_HEIGHT.times do |z|
+              draw_block(x, y, z, size_x - x, size_y - y, z)
+            end
+          end
+        end
+      when :east
+        size_x.times do |y|
+          size_y.times do |x|
+            MAX_HEIGHT.times do |z|
+              draw_block(x, y, z, y, size_y - x, z)
+            end
+          end
+        end
+    end
   end
 
   #rotate the view counter clockwise
@@ -95,24 +155,5 @@ class IsometricFactory
   #dumps all the blocks in a specific region to a stream
   def dump_blocks(stream, x_start, y_start, z_start, x_end, y_end, z_end)
 
-  end
-  
-  #find the angle for drawing the blocks 
-  def get_view_ranges
-    x_ranges = {east: {start: 0, end: @size_x-1}, west: {start: @size_x-1, end: 0}}
-    y_ranges = {north:  {start: @size_y-1, end: 0}, south: {start: 0, end: @size_y-1}}
-    views = view.to_s.split('_').map {|s| s.to_sym}
-    ranges = {}
-    ranges[:x] = x_ranges[((views.first.length == 4) ? views.first : views.last)]
-    ranges[:y] = y_ranges[((views.first.length == 5) ? views.first : views.last)]
-    enums = ranges.map do |key, value|
-      if value[:start] > value[:end]
-        enum = value[:start].downto(value[:end])
-      else
-        enum = value[:start].upto(value[:end])
-      end
-      [key, enum]
-    end
-    Hash[enums]
   end
 end
