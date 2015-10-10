@@ -12,7 +12,7 @@ class IsometricFactory
   #Size of the landscape
   attr_reader :size_x, :size_y
   #current camera direction
-  attr_reader :view
+  attr_accessor :view
 
   #gets the actual position of a tile based on its index
   def self.get_tile_position(x, y)
@@ -76,19 +76,19 @@ class IsometricFactory
       when :west
         size_x.times do |y|
           size_y.times do |x|
-            draw_tile(x, y, size_x - y, x)
+            draw_tile(x, y, size_x-1 - y, x)
           end
         end
       when :north
         size_y.times do |y|
           size_x.times do |x|
-            draw_tile(x, y, size_x - x, size_y - y)
+            draw_tile(x, y, size_x-1 - x, size_y-1 - y)
           end
         end
       when :east
         size_x.times do |y|
           size_y.times do |x|
-            draw_tile(x, y, y, size_y - x)
+            draw_tile(x, y, y, size_y-1 - x)
           end
         end
     end
@@ -119,7 +119,7 @@ class IsometricFactory
         size_x.times do |y|
           size_y.times do |x|
             MAX_HEIGHT.times do |z|
-              draw_block(x, y, z, size_x - y, x, z)
+              draw_block(x, y, z, size_x-1 - y, x, z)
             end
           end
         end
@@ -127,7 +127,7 @@ class IsometricFactory
         size_y.times do |y|
           size_x.times do |x|
             MAX_HEIGHT.times do |z|
-              draw_block(x, y, z, size_x - x, size_y - y, z)
+              draw_block(x, y, z, size_x-1 - x, size_y-1 - y, z)
             end
           end
         end
@@ -135,7 +135,7 @@ class IsometricFactory
         size_x.times do |y|
           size_y.times do |x|
             MAX_HEIGHT.times do |z|
-              draw_block(x, y, z, y, size_y - x, z)
+              draw_block(x, y, z, y, size_y-1 - x, z)
             end
           end
         end

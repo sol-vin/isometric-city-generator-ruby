@@ -6,23 +6,11 @@ class CityFactory < PerlinFactory
 
   def initialize(seed, size_x, size_y)
     super(seed, size_x, size_y)
+
+    @building_colors = []
   end
 
-  def get_tile_color(x, y)
-    r = (255 * (x.to_f/size_x)).to_i
-    b = (255 * (y.to_f/size_y)).to_i
-    g = 0
 
-    Gosu::Color.new(r,g,b)
-  end
-
-  def get_block_color(x, y, z)
-    r = (255 * (x.to_f/size_x)).to_i
-    b = (255 * (y.to_f/size_y)).to_i
-    g = (255 * (z.to_f/MAX_HEIGHT)).to_i
-
-    Gosu::Color.new(r,g,b)
-  end
 
   def is_building_at?(x, y)
     get_perlin_value(x, y, 0, BUILDING_CHANCE) == 0

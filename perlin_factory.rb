@@ -13,25 +13,28 @@ class PerlinFactory < IsometricFactory
     super(size_x, size_y)
     @seed  = seed
     @perlin_noise = Perlin::Generator.new(seed, PERLIN_PERSIST, PERLIN_OCTAVE)
-
-    @perlin_colors = []
-    @perlin_colors << 0xffffcc97
-    @perlin_colors << 0xffffa179
-    @perlin_colors << 0xffd34b59
-    @perlin_colors << 0xffc13759
-    @perlin_colors << 0xff744268
   end
 
   #overridden methods
   def is_block_at?(x, y, z)
     (get_perlin_noise(x, y) * MAX_HEIGHT).round >= z
   end
- 
-  def get_block_color(x, y, z)
-    color_index = ((z / MAX_HEIGHT.to_f).clamp(0, 1.0)*@perlin_colors.length).to_i
-    @perlin_colors[color_index]
+
+  def get_tile_color(x, y)
+    r = (255 * (x.to_f/size_x)).to_i
+    b = (255 * (y.to_f/size_y)).to_i
+    g = 0
+
+    Gosu::Color.new(r,g,b)
   end
 
+  def get_block_color(x, y, z)
+    r = (255 * (x.to_f/size_x)).to_i
+    b = (255 * (y.to_f/size_y)).to_i
+    g = (255 * (z.to_f/MAX_HEIGHT)).to_i
+
+    Gosu::Color.new(r,g,b)
+  end
   #new methods
 
   def seed=(value)
