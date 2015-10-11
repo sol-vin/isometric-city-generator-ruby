@@ -1,5 +1,5 @@
 #Used to hold block images and shading/lighting as well as an add-on feature
-class BlockAsset
+class IsometricAsset
   attr_reader :base, :light, :shade, :feature
 
   def initialize(base_image, light_image = nil, shade_image = nil, feature_image = nil)
@@ -33,8 +33,8 @@ class BlockAsset
 
   def draw(position, z_order, color)
     base.draw(position.x, position.y, z_order, 1, 1, color)
-    light.draw(position.x, position.y, z_order, 1, 1, 0x08ffffff) if has_light?
-    shade.draw(position.x, position.y, z_order, 1, 1, 0x08ffffff) if has_shade?
+    light.draw(position.x, position.y, z_order, 1, 1, 0x10ffffff) if has_light?
+    shade.draw(position.x, position.y, z_order, 1, 1, 0x10ffffff) if has_shade?
     feature.draw(position.x, position.y, z_order, 1, 1, 0xffffffff) if has_feature?
   end
 end

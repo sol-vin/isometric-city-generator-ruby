@@ -1,40 +1,27 @@
+require 'perlin'
 require './isometric_factory.rb'
 
 class PerlinFactory < IsometricFactory
 
   PERLIN_STEP = 0.02
   PERLIN_OCTAVE = 8
-  PERLIN_PERSIST = 0
+  PERLIN_PERSIST = 0.03
   PERLIN_VALUE_MULTIPLIER = 9
 
   attr_reader :seed
 
-  def initialize(seed, size_x, size_y)
-    super(size_x, size_y)
+  def initialize(seed, size_x, size_y, size_z)
+    super(size_x, size_y, size_z)
     @seed  = seed
+    puts "New Perlin Generator #{seed}"
     @perlin_noise = Perlin::Generator.new(seed, PERLIN_PERSIST, PERLIN_OCTAVE)
   end
 
   #overridden methods
   def is_block_at?(x, y, z)
-    (get_perlin_noise(x, y) * MAX_HEIGHT).round >= z
+    super(x, y, z) && (get_perlin_noise_2d(x, y) * size_z).round >= z
   end
 
-  def get_tile_color(x, y)
-    r = (255 * (x.to_f/size_x)).to_i
-    b = (255 * (y.to_f/size_y)).to_i
-    g = 0
-
-    Gosu::Color.new(r,g,b)
-  end
-
-  def get_block_color(x, y, z)
-    r = (255 * (x.to_f/size_x)).to_i
-    b = (255 * (y.to_f/size_y)).to_i
-    g = (255 * (z.to_f/MAX_HEIGHT)).to_i
-
-    Gosu::Color.new(r,g,b)
-  end
   #new methods
 
   def seed=(value)
@@ -43,10 +30,14 @@ class PerlinFactory < IsometricFactory
   end
 
   def get_perlin_height(x, y)
-    (get_perlin_noise(x, y) * MAX_HEIGHT).round
+    (get_perlin_noise_2d(x, y) * size_z).round
   end
 
-  def get_perlin_noise(x, y)
+  def get_perlin_noise_1d(x)
+    (@perlin_noise[x * PERLIN_STEP, -100] + 1) / 2.0
+  end
+
+  def get_perlin_noise_2d(x, y)
     (@perlin_noise[x * PERLIN_STEP, y * PERLIN_STEP] + 1) / 2.0
   end
 
@@ -54,13 +45,46 @@ class PerlinFactory < IsometricFactory
     (@perlin_noise[x * PERLIN_STEP, y * PERLIN_STEP, z * PERLIN_STEP] + 1) / 2.0
   end
 
-  def get_perlin_value(x, y, low, high)
-    throw Exception.new("start must be less than end!") if low > high
-    (get_perlin_noise(x,y).to_s[-6..-1].to_i % (high-low)) + low
+  def get_perlin_value_1d(x, low, high)
+    throw Exception.new("start must be less than end!") if low >= high
+    (get_perlin_noise_1d(x).to_s[-5..-1].to_i % (high-low)) + low
+  end
+
+  def get_perlin_value_2d(x, y, low, high)
+    throw Exception.new("start must be less than end!") if low >= high
+    (get_perlin_noise_2d(x,y).to_s[-5..-1].to_i % (high-low)) + low
   end
 
   def get_perlin_value_3d(x, y, z, low, high)
-    throw Exception.new("start must be less than end!") if low > high
-    (get_perlin_noise_3d(x,y,z).to_s[-6..-1].to_i % (high-low)) + low
+    throw Exception.new("start must be less than end!") if low >= high
+    (get_perlin_noise_3d(x,y,z).to_s[-5..-1].to_i % (high-low)) + low
+  end
+
+  def get_perlin_bool_1d(x, chance, outof)
+    throw Exception.new("chance must be less than outof") if chance >= outof
+    get_perlin_value_1d(x, chance, outof) <= chance
+  end
+
+  def get_perlin_bool_2d(x, y, chance, outof)
+    throw Exception.new("chance must be less than outof") if chance >= outof
+    get_perlin_value_2d(x, y, chance, outof) <= chance
+  end
+
+  def get_perlin_bool_3d(x, y, z, chance, outof)
+    throw Exception.new("chance must be less than outof") if chance >= outof
+    get_perlin_value_3d(x, y, z, chance, outof) <= chance
+  end
+
+  def get_perlin_item_1d(x, array)
+    array[get_perlin_value_1d(x, 0, array.length-1)]
+  end
+
+  def get_perlin_item_2d(x, y, array)
+    array[get_perlin_value_2d(x, y, 0, array.length-1)]
+  end
+
+  def get_perlin_item_3d(x, y, z, array)
+    array[get_perlin_value_3d(x, y, z, 0, array.length-1)]
   end
 end
+
