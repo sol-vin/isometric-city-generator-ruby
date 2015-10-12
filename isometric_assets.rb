@@ -67,8 +67,8 @@ class IsometricAssets
     @features.keys.select {|key| key.to_s =~ /^door/}
   end
 
-  def trees
-    @assets.keys.select {|key| key.to_s =~ /^trees/}
+  def foliage
+    @assets.keys.select {|key| key.to_s =~ /^foliage/}
   end
 
   def tiles

@@ -34,7 +34,7 @@ class PerlinFactory < IsometricFactory
   end
 
   def get_perlin_noise_1d(x)
-    (@perlin_noise[x * PERLIN_STEP, -100] + 1) / 2.0
+    (@perlin_noise[x * PERLIN_STEP, 0] + 1) / 2.0
   end
 
   def get_perlin_noise_2d(x, y)
@@ -47,30 +47,30 @@ class PerlinFactory < IsometricFactory
 
   def get_perlin_value_1d(x, low, high)
     throw Exception.new("start must be less than end!") if low >= high
-    (get_perlin_noise_1d(x).to_s[-5..-1].to_i % (high-low)) + low
+    (get_perlin_noise_1d(x).to_s[-7..-1].to_i % (high-low)) + low
   end
 
   def get_perlin_value_2d(x, y, low, high)
-    throw Exception.new("start must be less than end!") if low >= high
-    (get_perlin_noise_2d(x,y).to_s[-5..-1].to_i % (high-low)) + low
+    throw Exception.new("start must be less than end!") if low >= high + 1
+    (get_perlin_noise_2d(x,y).to_s[-7..-1].to_i % (high+1-low)) + low
   end
 
   def get_perlin_value_3d(x, y, z, low, high)
-    throw Exception.new("start must be less than end!") if low >= high
-    (get_perlin_noise_3d(x,y,z).to_s[-5..-1].to_i % (high-low)) + low
+    throw Exception.new("start must be less than end!") if low >= high+1
+    (get_perlin_noise_3d(x,y,z).to_s[-7..-1].to_i % (high+1-low)) + low
   end
 
-  def get_perlin_bool_1d(x, chance, outof)
+  def get_perlin_bool_1d(x, chance=1, outof=2)
     throw Exception.new("chance must be less than outof") if chance >= outof
     get_perlin_value_1d(x, chance, outof) <= chance
   end
 
-  def get_perlin_bool_2d(x, y, chance, outof)
+  def get_perlin_bool_2d(x, y, chance=1, outof=2)
     throw Exception.new("chance must be less than outof") if chance >= outof
     get_perlin_value_2d(x, y, chance, outof) <= chance
   end
 
-  def get_perlin_bool_3d(x, y, z, chance, outof)
+  def get_perlin_bool_3d(x, y, z, chance=1, outof=2)
     throw Exception.new("chance must be less than outof") if chance >= outof
     get_perlin_value_3d(x, y, z, chance, outof) <= chance
   end

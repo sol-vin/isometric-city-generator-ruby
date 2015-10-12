@@ -57,16 +57,19 @@ class IsometricFactory
 
 
   def is_tile_flipped_h?(x, y)
-
+    false
   end
 
   def is_tile_flipped_v?(x, y)
-
+    false
   end
-  
+
   def draw_tile(x_pos, y_pos, x, y)
     position = get_tile_position(x_pos, y_pos)
-    assets.get_asset(get_tile_type(x, y)).draw(position, 1, ((debug ? get_debug_tile_color(x, y) : get_tile_color(x, y))))
+    assets.get_asset(get_tile_type(x, y)).draw(position,
+                                               ((debug ? get_debug_tile_color(x, y) : get_tile_color(x, y))),
+                                               is_tile_flipped_h?(x, y),
+                                               is_tile_flipped_v?(x, y))
   end
 
   #draw phase for the grid
@@ -127,8 +130,8 @@ class IsometricFactory
    !(x < 0 || y < 0 || z < 0 || x >= size_x || y >= size_y || z >= size_z)
   end
 
-  def is_block_flipped_h(x, y, z)
-
+  def is_block_flipped_h?(x, y, z)
+    false
   end
 
   #draw a single block
@@ -137,7 +140,12 @@ class IsometricFactory
   def draw_block(x_pos, y_pos, z_pos, x, y, z)
     return if get_block_type(x, y, z).nil?
     position = get_block_position(x_pos, y_pos, z_pos)
-    assets.get_asset(get_block_type(x, y, z)).draw(position, 1, ((debug ? get_debug_block_color(x, y, z) : get_block_color(x, y, z))))
+    assets.get_asset(get_block_type(x, y, z)).draw(
+        position,
+        ((debug ? get_debug_block_color(x, y, z) : get_block_color(x, y, z))),
+        is_block_flipped_h?(x, y, z),
+        false
+    )
   end
 
   #draw all the blocks

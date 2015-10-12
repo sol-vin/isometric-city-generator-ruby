@@ -31,10 +31,17 @@ class IsometricAsset
     @base.height
   end
 
-  def draw(position, z_order, color)
-    base.draw(position.x, position.y, z_order, 1, 1, color)
-    light.draw(position.x, position.y, z_order, 1, 1, 0x10ffffff) if has_light?
-    shade.draw(position.x, position.y, z_order, 1, 1, 0x10ffffff) if has_shade?
-    feature.draw(position.x, position.y, z_order, 1, 1, 0xffffffff) if has_feature?
+  def draw(position, color, flip_h, flip_v)
+
+    scale_h = (flip_h ? -1.0 : 1.0)
+    scale_v = (flip_v ? -1.0 : 1.0)
+
+    pcx = (flip_h ? width : 0)
+    pcy = (flip_v ? height : 0)
+
+    base.draw(position.x + pcx, position.y + pcy, 1, scale_h, scale_v, color)
+    light.draw(position.x + pcx, position.y + pcy, 1, scale_h, scale_v, 0x10ffffff) if has_light?
+    shade.draw(position.x + pcx, position.y + pcy, 1, scale_h, scale_v, 0x10ffffff) if has_shade?
+    feature.draw(position.x + pcx, position.y + pcy, 1, scale_h, scale_v, 0xffffffff) if has_feature?
   end
 end

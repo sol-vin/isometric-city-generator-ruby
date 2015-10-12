@@ -4,7 +4,10 @@ class CityFactory < PerlinFactory
 
   BUILDING_CHANCE = 5
   ROAD_CHANCE = 25
-  FOLIAGE_CHANCE = 3
+  FOLIAGE_CHANCE = 4
+  FOLIAGE_SEED = 2
+  ROOF_CHANCE = 5
+  ROOF_SEED = 1
 
   def initialize(seed, size_x, size_y, size_z)
     super(seed, size_x, size_y, size_z)
@@ -19,6 +22,20 @@ class CityFactory < PerlinFactory
     @assets.add_alias(:grass, :tile)
     @assets.add_alias(:cement, :tile)
     @assets.add_alias(:water, :tile)
+    @assets.add_alias(:roof_5, :small_block_1)
+  end
+
+  def is_tile_flipped_h?(x, y)
+    type = get_tile_type(x, y)
+    case(type)
+      when :road_4_way
+        false
+      when :road_straight
+        (get_perlin_bool_1d(y, 1, ROAD_CHANCE) && (view == :west || view == :east)) ||
+            (get_perlin_bool_1d(x, 1, ROAD_CHANCE) && (view == :south || view == :north))
+      else
+        return false
+    end
   end
 
   def is_a_road?(x, y)
@@ -32,11 +49,7 @@ class CityFactory < PerlinFactory
       #find which axis
       if get_perlin_bool_1d(x, 1, ROAD_CHANCE) && get_perlin_bool_1d(y, 1, ROAD_CHANCE)
         return :road_4_way
-      elsif (get_perlin_bool_1d(x, 1, ROAD_CHANCE) && view != :west && view !=:east) ||
-          (get_perlin_bool_1d(y, 1, ROAD_CHANCE) && view != :north && view !=:south)
-        return :road_straight_flip
-      elsif (get_perlin_bool_1d(y, 1, ROAD_CHANCE) && view != :west && view !=:east) ||
-          (get_perlin_bool_1d(x, 1, ROAD_CHANCE) && view != :north && view !=:south)
+      elsif (get_perlin_bool_1d(x, 1, ROAD_CHANCE) || get_perlin_bool_1d(y, 1, ROAD_CHANCE))
         return :road_straight
       end
     end
@@ -76,7 +89,7 @@ class CityFactory < PerlinFactory
 
     if is_foliage_at?(x, y)
       if z == 0
-        return get_perlin_item_2d(x, y, assets.trees)
+        return get_perlin_item_3d(x, y, FOLIAGE_SEED, assets.foliage)
       else
         return nil
       end
@@ -85,23 +98,46 @@ class CityFactory < PerlinFactory
     #make it a roof sometimes if there is no block above
     if is_block_at?(x, y, z - 1) && !is_block_at?(x, y, z + 1) && is_block_buildable(x,y,z-1)
       #roll for a roof
-      if get_perlin_bool_2d(x, y, assets.roofs.length-2, assets.roofs.length-1)
-        return get_perlin_item_2d(x, y, assets.roofs)
+      if get_perlin_bool_2d(x, y, 1, ROOF_CHANCE)
+        if get_perlin_height(x, y) <  2
+          return :roof_1
+        end
+        return get_perlin_item_3d(x, y, z, assets.roofs)
       end
     end
+
+    if get_perlin_height(x, y) <= 1 && z == 0
+      return :small_block_1
+    elsif get_perlin_height(x, y) <= 1
+      return nil
+    end
+
     return :block
   end
 
   def get_block_color(x, y, z)
-    if get_block_type(x,y,z) == :block || assets.roofs.include?(get_block_type(x,y,z))
-      return get_perlin_item_2d(x, y, @building_colors)
+    if get_block_type(x,y,z) == :block || get_block_type(x, y, z) == :small_block_1 || assets.roofs.include?(get_block_type(x,y,z))
+      return get_perlin_item_3d(x, y, 5, @building_colors)
     end
 
     0xffffffff
   end
 
+  def is_block_flipped_h?(x, y, z)
+    type = get_block_type(x, y, z)
+    case(type)
+      when :roof_1
+        return get_perlin_bool_3d(x, y, z) if view == :north || view == :south
+        return !get_perlin_bool_3d(x, y, z) if view == :east || view == :west
+      when :small_block_1
+        return get_perlin_bool_3d(x, y, z) if view == :north || view == :south
+        return !get_perlin_bool_3d(x, y, z) if view == :east || view == :west
+
+    end
+  end
+
   def is_block_type_buildable?(type)
-    !(assets.roofs.include?(type) || assets.trees.include?(type)  || type.nil?)
+    !(assets.roofs.include?(type) || assets.foliage.include?(type)  || type == :small_block_1 || type.nil?)
   end
 
   def is_block_buildable(x, y, z)
@@ -117,7 +153,7 @@ class CityFactory < PerlinFactory
   end
 
   def is_building_at?(x, y)
-    get_perlin_bool_2d(x, y, 1, BUILDING_CHANCE) && is_tile_buildable?(x, y)
+    get_perlin_bool_2d(x, y, 1, BUILDING_CHANCE) && is_tile_buildable?(x, y) && !is_foliage_at?(x, y)
   end
 
   def get_features(x, y, z)
