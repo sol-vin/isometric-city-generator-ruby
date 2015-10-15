@@ -58,7 +58,7 @@ class Game < Gosu::Window
     close if @close_button.is_down?
 
     if @random_button.was_pressed?
-      @factory.seed = rand(10000)
+      @factory.seed = rand(1000000)
       @image = nil
     end
 

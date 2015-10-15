@@ -7,7 +7,9 @@ class CityFactory < PerlinFactory
   FOLIAGE_CHANCE = 4
   FOLIAGE_SEED = 2
   ROOF_CHANCE = 5
+  ROOF_1_FLIP_SEED = 10
   ROOF_SEED = 1
+  DOOR_CHANCE = 2
 
   def initialize(seed, size_x, size_y, size_z)
     super(seed, size_x, size_y, size_z)
@@ -31,8 +33,8 @@ class CityFactory < PerlinFactory
       when :road_4_way
         false
       when :road_straight
-        (get_perlin_bool_1d(y, 1, ROAD_CHANCE) && (view == :west || view == :east)) ||
-            (get_perlin_bool_1d(x, 1, ROAD_CHANCE) && (view == :south || view == :north))
+        (get_perlin_bool_1d(y, 1, ROAD_CHANCE) && (view == :south_west || view == :north_east)) ||
+            (get_perlin_bool_1d(x, 1, ROAD_CHANCE) && (view == :south_east || view == :north_west))
       else
         return false
     end
@@ -127,12 +129,15 @@ class CityFactory < PerlinFactory
     type = get_block_type(x, y, z)
     case(type)
       when :roof_1
-        return get_perlin_bool_3d(x, y, z) if view == :north || view == :south
-        return !get_perlin_bool_3d(x, y, z) if view == :east || view == :west
+        return get_perlin_bool_3d(x, y, ROOF_1_FLIP_SEED) if view == :north_west || view == :south_east
+        return !get_perlin_bool_3d(x, y, ROOF_1_FLIP_SEED) if view == :north_east || view == :south_west
       when :small_block_1
-        return get_perlin_bool_3d(x, y, z) if view == :north || view == :south
-        return !get_perlin_bool_3d(x, y, z) if view == :east || view == :west
+        return get_perlin_bool_3d(x, y, z) if view == :north_west || view == :south_east
+        return !get_perlin_bool_3d(x, y, z) if view == :north_east || view == :south_west
+    end
 
+    if assets.billboards.include? type
+      return get_perlin_bool_3d(x, y, 10000)
     end
   end
 
@@ -156,11 +161,33 @@ class CityFactory < PerlinFactory
     get_perlin_bool_2d(x, y, 1, BUILDING_CHANCE) && is_tile_buildable?(x, y) && !is_foliage_at?(x, y)
   end
 
-  def get_features(x, y, z)
+  def get_decorations(x, y, z)
+    return {} unless get_block_type(x, y, z) == :block
+    decorations = {}
 
+    if (z == 0)
+      if true #get_perlin_bool_2d(x, y, 1, DOOR_CHANCE)
+        if get_tile_type(x - 1, y) == :road_straight
+          door_direction = :east
+        elsif get_tile_type(x + 1, y) == :road_straight
+          door_direction = :west
+        elsif get_tile_type(x, y - 1) == :road_straight
+          door_direction = :north
+        elsif get_tile_type(x, y + 1) == :road_straight
+          door_direction = :south
+        else
+          door_direction = get_perlin_item_3d(x, y, z, [:north, :south, :east, :west])
+        end
+        decorations[door_direction] = get_perlin_item_3d(x, y, z, assets.doors)
+      end
+    end
+
+    window = get_perlin_item_3d(x, y, z, assets.windows)
+    decorations[:north] ||= window
+    decorations[:south] ||= window
+    decorations[:west] ||= window
+    decorations[:east] ||= window
+    decorations
   end
 
-  def draw_features(x, y, z)
-
-  end
 end

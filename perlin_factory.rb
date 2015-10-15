@@ -13,7 +13,6 @@ class PerlinFactory < IsometricFactory
   def initialize(seed, size_x, size_y, size_z)
     super(size_x, size_y, size_z)
     @seed  = seed
-    puts "New Perlin Generator #{seed}"
     @perlin_noise = Perlin::Generator.new(seed, PERLIN_PERSIST, PERLIN_OCTAVE)
   end
 
@@ -33,6 +32,17 @@ class PerlinFactory < IsometricFactory
     (get_perlin_noise_2d(x, y) * size_z).round
   end
 
+  def get_perlin_noise(*args)
+    case args.length
+      when 1
+        get_perlin_noise_1d(args[0])
+      when 2
+        get_perlin_noise_2d(args[0], args[1])
+      when 3
+        get_perlin_nosie_3d(args[0], args[1], args[2])
+    end
+  end
+
   def get_perlin_noise_1d(x)
     (@perlin_noise[x * PERLIN_STEP, 0] + 1) / 2.0
   end
@@ -43,6 +53,17 @@ class PerlinFactory < IsometricFactory
 
   def get_perlin_noise_3d(x, y, z)
     (@perlin_noise[x * PERLIN_STEP, y * PERLIN_STEP, z * PERLIN_STEP] + 1) / 2.0
+  end
+
+  def get_perlin_value(*args)
+    case args.length
+      when 3
+        get_perlin_value_1d(args[0], args[1], args[2])
+      when 4
+        get_perlin_value_2d(args[0], args[1], args[2], args[3])
+      when 5
+        get_perlin_value_3d(args[0], args[1], args[2], args[3], args[4])
+    end
   end
 
   def get_perlin_value_1d(x, low, high)
@@ -59,6 +80,7 @@ class PerlinFactory < IsometricFactory
     throw Exception.new("start must be less than end!") if low >= high+1
     (get_perlin_noise_3d(x,y,z).to_s[-7..-1].to_i % (high+1-low)) + low
   end
+
 
   def get_perlin_bool_1d(x, chance=1, outof=2)
     throw Exception.new("chance must be less than outof") if chance >= outof

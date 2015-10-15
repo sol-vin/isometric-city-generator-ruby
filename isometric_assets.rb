@@ -51,20 +51,24 @@ class IsometricAssets
     @alias[key] = nil
   end
 
+  def billboards
+    @assets.keys.select {|key| key.to_s =~/^billboard/}
+  end
+
   def roads
     @assets.keys.select {|key| key.to_s =~ /^road/}
   end
 
   def roofs
-    @assets.keys.select {|key| key.to_s =~ /^roof/}
+    @assets.keys.select {|key| key.to_s =~ /^roof/ || key.to_s =~/^billboard/}
   end
 
   def windows
-    @features.keys.select {|key| key.to_s =~ /^window/}
+    @assets.keys.select {|key| key.to_s =~ /^window/}
   end
 
   def doors
-    @features.keys.select {|key| key.to_s =~ /^door/}
+    @assets.keys.select {|key| key.to_s =~ /^door/}
   end
 
   def foliage
@@ -77,10 +81,6 @@ class IsometricAssets
 
   def blocks
     @assets.keys.select {|key| @assets[key].height = block_height}
-  end
-
-  def get_feature_image type
-    @assets[type]
   end
 
   #Get a block asset from @@blocks
