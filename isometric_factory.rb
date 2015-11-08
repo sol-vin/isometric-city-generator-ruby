@@ -14,20 +14,6 @@ class IsometricFactory
   #current camera direction
   attr_accessor :view, :debug
 
-  #gets the actual position of a tile based on its index
-  def get_tile_position(x, y)
-    spacing = Vector2.new((assets.tile_width/2.0).round, (assets.tile_height/2.0).round)
-    Vector2.new((-x * spacing.x) + (y * spacing.x) - y + x + OFFSET.x,
-              (x * spacing.y) + (y*spacing.y) - y - x + OFFSET.y)
-  end
-  
-  #gets the actual position of a block based on its index
-  def get_block_position(x, y, z)
-    position = get_tile_position(x,y)
-    position.y -= (assets.block_height / 2.0).round * (z + 1)
-    position
-  end
-
   def initialize(size_x, size_y, size_z)
     @size_x = size_x
     @size_y = size_y
@@ -35,6 +21,13 @@ class IsometricFactory
     @view = :south_east
     @debug = false
     @assets = IsometricAssets.new("isometric_factory")
+  end
+
+  #gets the actual position of a tile based on its index
+  def get_tile_position(x, y)
+    spacing = Vector2.new((assets.tile_width/2.0).round, (assets.tile_height/2.0).round)
+    Vector2.new((-x * spacing.x) + (y * spacing.x) - y + x + OFFSET.x,
+                (x * spacing.y) + (y*spacing.y) - y - x + OFFSET.y)
   end
 
   #finds out what kind of tile is at an index
@@ -47,6 +40,7 @@ class IsometricFactory
     0xffffffff
   end
 
+  #gets the color of the tile when debug mode is active
   def get_debug_tile_color(x, y)
     r = (255 * (x.to_f/size_x)).to_i
     b = (255 * (y.to_f/size_y)).to_i
@@ -55,37 +49,36 @@ class IsometricFactory
     Gosu::Color.new(r,g,b)
   end
 
+  def is_tile_at?(x, y)
+    not (x < 0 or y < 0 or x >= size_x or y >= size_y)
+  end
 
+  #is the tile flipped horizontally?
   def is_tile_flipped_h?(x, y)
     false
   end
 
+  #is the tile flipped vertically?
   def is_tile_flipped_v?(x, y)
     false
   end
 
-  def draw_tile(x_pos, y_pos, x, y)
-    position = get_tile_position(x_pos, y_pos)
-    flip_h = is_tile_flipped_h?(x, y)
-    flip_v = is_tile_flipped_v?(x, y)
 
+  #draws the tile at a position
+  def draw_tile(x_pos, y_pos, x, y)
+    return unless is_tile_at?(x, y)
+    position = get_tile_position(x_pos, y_pos)
 
     tile_image = assets.get_asset(get_tile_type(x, y))
-    scale_h = (flip_h ? -1.0 : 1.0)
-    scale_v = (flip_v ? 1.0 : 1.0)
-    pcx = (flip_h ? tile_image.width : 0)
-    pcy = (flip_v ? tile_image.height : 0)
 
-    tile_image.base.draw(position.x + pcx,
-                         position.y + pcy,
-                         1,
-                         scale_h,
-                         scale_v,
-                         ((debug ? get_debug_tile_color(x, y) : get_tile_color(x, y))))
-    #.draw(position,
-     #                                          ((debug ? get_debug_tile_color(x, y) : get_tile_color(x, y))),
-     #                                          is_tile_flipped_h?(x, y),
-      #                                         is_tile_flipped_v?(x, y))
+
+
+    tile_image.draw_content(position.x,
+                            position.y,
+                            is_tile_flipped_h?(x, y),
+                            is_tile_flipped_v?(x, y),
+                            ((debug ? get_debug_tile_color(x, y) : get_tile_color(x, y))),
+                            view)
   end
 
   #draw phase for the grid
@@ -121,6 +114,12 @@ class IsometricFactory
 
   end
 
+  #gets the actual position of a block based on its index
+  def get_block_position(x, y, z)
+    position = get_tile_position(x,y)
+    position.y -= (assets.block_height / 2.0).round * (z + 1)
+    position
+  end
 
   #finds out what kind of block is at an index
   def get_block_type(x, y, z)
@@ -132,6 +131,7 @@ class IsometricFactory
     0xffffffff
   end
 
+  #gets the color of the block when debug mode is active
   def get_debug_block_color(x, y, z)
     r = (255 * (x.to_f/size_x)).to_i
     b = (255 * (y.to_f/size_y)).to_i
@@ -150,6 +150,11 @@ class IsometricFactory
     false
   end
 
+  def is_block_flipped_v?(x, y, z)
+    false
+  end
+
+
   #draw a single block
   #x_pos, y_pos, z_pos drawn position of the block
   #x, y, z, index of the block we want to draw at x_pos, y_pos, z_pos
@@ -157,15 +162,22 @@ class IsometricFactory
     return if get_block_type(x, y, z).nil?
     position = get_block_position(x_pos, y_pos, z_pos)
     block_image = assets.get_asset(get_block_type(x, y, z))
-    flip_h = is_block_flipped_h?(x, y, z)
-    scale_h = (flip_h ? -1.0 : 1.0)
-    pcx = (flip_h ? block_image.width : 0)
+    color = ((debug ? get_debug_block_color(x, y, z) : get_block_color(x, y, z)))
 
-    block_image.base.draw(position.x + pcx, position.y, 1, scale_h, 1, ((debug ? get_debug_block_color(x, y, z) : get_block_color(x, y, z))))
-    block_image.feature.draw(position.x + pcx, position.y, 1, scale_h, 1, 0xffffffff) if block_image.has_feature?
-    draw_decorations(x_pos, y_pos, z_pos, x, y, z)
-    block_image.light.draw(position.x + pcx, position.y, 1, scale_h, 1, 0x10ffffff) if block_image.has_light?
-    block_image.shade.draw(position.x + pcx, position.y, 1, scale_h, 1, 0x10ffffff) if block_image.has_shade?
+    block_image.draw_content(position.x,
+                             position.y,
+                             is_block_flipped_h?(x, y, z),
+                             is_block_flipped_v?(x, y, z),
+                             color,
+                             view)
+
+    #draw_decorations(x_pos, y_pos, z_pos, x, y, z)
+    # block_image.draw_lighting(position.x,
+    #                           position.y,
+    #                           is_block_flipped_h?(x, y, z),
+    #                           is_block_flipped_v?(x, y, z),
+    #                           0xffff0000,
+    #                           view)
   end
 
   #draw all the blocks
@@ -212,6 +224,8 @@ class IsometricFactory
 
   def draw_decorations(x_pos, y_pos, z_pos, x, y, z)
     decorations = get_decorations(x, y, z)
+
+    #look through the decorations for the block and which sides should be displayed
     case view
       when :south_east
         left_dec = decorations[:east]
@@ -229,10 +243,12 @@ class IsometricFactory
 
     position = get_block_position(x_pos, y_pos, z_pos)
     unless left_dec.nil?
-      assets.get_asset(left_dec).base.draw(position.x, position.y, 1, 1, 1, ((debug ? get_debug_block_color(x, y, z) : 0xffffffff)))
+      color = ((debug ? get_debug_block_color(x, y, z) : 0xffffffff))
+      assets.get_asset(left_dec).draw_content(position.x, position.y, false, color)
     end
     unless right_dec.nil?
-      assets.get_asset(right_dec).base.draw(position.x + assets.block_width, position.y, 1, -1.0, 1, ((debug ? get_debug_block_color(x, y, z) : 0xffffffff)))
+      color = ((debug ? get_debug_block_color(x, y, z) : 0xffffffff))
+      assets.get_asset(right_dec).draw_content(position.x, position.y, true, color)
     end
   end
 

@@ -1,4 +1,5 @@
 require './isometric_asset.rb'
+require './icg_tools.rb'
 
 class IsometricAssets
   attr_reader :assets, :alias
@@ -16,71 +17,37 @@ class IsometricAssets
   def add_content(assets_name)
     content_path = File.dirname(File.absolute_path(__FILE__)) + "/content/#{assets_name}/"
     Dir.entries(content_path).each do |folder|
-      next if folder =~ /^\.*$/
+      next if folder =~ /^\.*$/ #Returns . and . .as folders smh
+      name = folder.to_sym
+      puts "loading #{assets_name}/#{folder} from #{content_path + folder}"
 
-      Dir.entries(content_path + folder).each do |filename|
-        next if filename =~ /^\.*$/
-        name = filename.split('.').first.to_sym
+      #try to assign images if they exist
+      blocks_path = content_path + "#{folder}/"
+      puts blocks_path
 
-        puts "loading #{assets_name}/#{name} from #{content_path + folder + '/' + filename}"
-
-        #check to see of if image exists
-        base, light, shade, feature = nil
-
-        #try to assign images if they exist
-        blocks_path = content_path + "#{folder}/" + name.to_s + '/'
-        puts blocks_path
-
-        base = Gosu::Image.new(blocks_path + "#{name}.png") if File.exists? (blocks_path + "#{name}.png")
-        light = Gosu::Image.new(blocks_path + "#{name}_light.png") if File.exists? (blocks_path + "#{name}_light.png")
-        shade = Gosu::Image.new(blocks_path + "#{name}_shade.png") if File.exists? (blocks_path + "#{name}_shade.png")
-        feature = Gosu::Image.new(blocks_path + "#{name}_feature.png") if File.exists? (blocks_path + "#{name}_feature.png")
-
-        @assets[name] = IsometricAsset.new(base, light, shade, feature)
-        puts "loaded block texture #{name} from #{blocks_path}"
+      #make the initial asset,
+      asset = IsometricAsset.new ICGTools.read_texture_config(blocks_path + 'cfg')
+      Dir.entries(blocks_path).each do |image_file|
+        next if image_file =~ /^\.*$/ #stops . and . . as folders
+        next if image_file == 'cfg' #ignore the configuration file
+        image_tag = image_file.split('.').first.to_sym #grab the tag out of the filename
+        asset.load_asset(image_tag, blocks_path + image_file) #load the tag and image into the asset
       end
+      @assets[name] = asset
+      puts "loaded block texture #{name} from #{blocks_path},had tags #{asset.keys}"
     end
     true
   end
 
+  def from_collection(tag)
+    @assets.keys.select {|k| get_asset(k).collections.include? tag}
+  end
   def add_alias(key, asset)
     @alias[key] = asset
   end
 
   def remove_alias(key)
     @alias[key] = nil
-  end
-
-  def billboards
-    @assets.keys.select {|key| key.to_s =~/^billboard/}
-  end
-
-  def roads
-    @assets.keys.select {|key| key.to_s =~ /^road/}
-  end
-
-  def roofs
-    @assets.keys.select {|key| key.to_s =~ /^roof/ || key.to_s =~/^billboard/}
-  end
-
-  def windows
-    @assets.keys.select {|key| key.to_s =~ /^window/}
-  end
-
-  def doors
-    @assets.keys.select {|key| key.to_s =~ /^door/}
-  end
-
-  def foliage
-    @assets.keys.select {|key| key.to_s =~ /^foliage/}
-  end
-
-  def tiles
-    @assets.keys.select {|key| @assets[key].height = tile_height}
-  end
-
-  def blocks
-    @assets.keys.select {|key| @assets[key].height = block_height}
   end
 
   #Get a block asset from @@blocks
