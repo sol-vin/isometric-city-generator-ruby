@@ -5,7 +5,6 @@ class IsometricAssets
   attr_reader :assets, :alias
 
 
-
   def initialize(name)
 
     @assets = {}
@@ -26,7 +25,7 @@ class IsometricAssets
       puts blocks_path
 
       #make the initial asset,
-      asset = IsometricAsset.new ICGTools.read_texture_config(blocks_path + 'cfg')
+      asset = IsometricAsset.new folder, ICGTools.read_texture_config(blocks_path + 'cfg')
       Dir.entries(blocks_path).each do |image_file|
         next if image_file =~ /^\.*$/ #stops . and . . as folders
         next if image_file == 'cfg' #ignore the configuration file
@@ -40,8 +39,10 @@ class IsometricAssets
   end
 
   def from_collection(tag)
-    @assets.keys.select {|k| get_asset(k).collections.include? tag}
+    @assets.keys.select {|k| get_asset(k).config[:collections].include? tag}
   end
+  alias f_c from_collection
+
   def add_alias(key, asset)
     @alias[key] = asset
   end

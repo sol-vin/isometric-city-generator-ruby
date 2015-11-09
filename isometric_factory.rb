@@ -128,7 +128,7 @@ class IsometricFactory
 
   #get the color of a block at an index
   def get_block_color(x, y, z)
-    0xffffffff
+    0xffeeeeee
   end
 
   #gets the color of the block when debug mode is active
@@ -171,13 +171,13 @@ class IsometricFactory
                              color,
                              view)
 
-    #draw_decorations(x_pos, y_pos, z_pos, x, y, z)
-    # block_image.draw_lighting(position.x,
-    #                           position.y,
-    #                           is_block_flipped_h?(x, y, z),
-    #                           is_block_flipped_v?(x, y, z),
-    #                           0xffff0000,
-    #                           view)
+    draw_decorations(x_pos, y_pos, z_pos, x, y, z)
+    block_image.draw_lighting(position.x,
+                              position.y,
+                              is_block_flipped_h?(x, y, z),
+                              is_block_flipped_v?(x, y, z),
+                              0xffff0000,
+                              view)
   end
 
   #draw all the blocks
@@ -244,11 +244,11 @@ class IsometricFactory
     position = get_block_position(x_pos, y_pos, z_pos)
     unless left_dec.nil?
       color = ((debug ? get_debug_block_color(x, y, z) : 0xffffffff))
-      assets.get_asset(left_dec).draw_content(position.x, position.y, false, color)
+      assets.get_asset(left_dec).draw_content(position.x, position.y, false, false, color, view)
     end
     unless right_dec.nil?
       color = ((debug ? get_debug_block_color(x, y, z) : 0xffffffff))
-      assets.get_asset(right_dec).draw_content(position.x, position.y, true, color)
+      assets.get_asset(right_dec).draw_content(position.x, position.y, true, false, color, view)
     end
   end
 

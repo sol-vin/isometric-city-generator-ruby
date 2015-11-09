@@ -41,8 +41,8 @@ class Game < Gosu::Window
     @last_view_button = Key.new Gosu::KbS
     @draw_easy_button = Key.new Gosu::KbG
     @draw_hard_button = Key.new Gosu::KbH
-    @rotate_cw_button = Key.new Gosu::KbQ
-    @rotate_ccw_button = Key.new Gosu::KbW
+    @rotate_cw_button = Key.new Gosu::KbW
+    @rotate_ccw_button = Key.new Gosu::KbQ
     @zoom_in_button = Key.new Gosu::KbZ
     @zoom_out_button = Key.new Gosu::KbX
 
