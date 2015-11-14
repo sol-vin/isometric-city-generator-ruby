@@ -8,7 +8,7 @@ class IsometricFactory
 
   #Hash of direction keys, which way the camera is facing and what direction is facing clockwise
   VIEWS = {north_west: :south_west, north_east: :north_west, south_east: :north_east, south_west: :south_east}
-
+  ROTATIONS = [:none_, :quarter_turn, :half_turn, :three_quarter_turn]
   #Size of the landscape
   attr_reader :size_x, :size_y, :size_z, :assets
   #current camera direction
@@ -28,6 +28,10 @@ class IsometricFactory
     spacing = Vector2.new((assets.tile_width/2.0).round, (assets.tile_height/2.0).round)
     Vector2.new((-x * spacing.x) + (y * spacing.x) - y + x + OFFSET.x,
                 (x * spacing.y) + (y*spacing.y) - y - x + OFFSET.y)
+  end
+
+  def get_tile_rotation(x, y)
+    #TODO: Add rotation for all 16 cardinal directions
   end
 
   #finds out what kind of tile is at an index
@@ -50,7 +54,7 @@ class IsometricFactory
   end
 
   def is_tile_at?(x, y)
-    not (x < 0 or y < 0 or x >= size_x or y >= size_y)
+    not (x < 0 or y < 0 or x > size_x or y > size_y)
   end
 
   #is the tile flipped horizontally?
@@ -73,12 +77,14 @@ class IsometricFactory
 
 
 
-    tile_image.draw_content(position.x,
-                            position.y,
-                            is_tile_flipped_h?(x, y),
-                            is_tile_flipped_v?(x, y),
-                            ((debug ? get_debug_tile_color(x, y) : get_tile_color(x, y))),
-                            view)
+    tile_image.draw_layer(:content,
+                          position.x,
+                          position.y,
+                          is_tile_flipped_h?(x, y),
+                          is_tile_flipped_v?(x, y),
+                          ((debug ? get_debug_tile_color(x, y) : get_tile_color(x, y))),
+                          view,
+                          debug)
   end
 
   #draw phase for the grid
@@ -131,6 +137,10 @@ class IsometricFactory
     0xffeeeeee
   end
 
+  def get_block_rotation(x, y, z)
+
+  end
+
   #gets the color of the block when debug mode is active
   def get_debug_block_color(x, y, z)
     r = (255 * (x.to_f/size_x)).to_i
@@ -143,7 +153,7 @@ class IsometricFactory
 
   #is there a block at index?
   def is_block_at?(x, y, z)
-   !(x < 0 || y < 0 || z < 0 || x >= size_x || y >= size_y || z >= size_z)
+   not (x < 0 || y < 0 || z < 0 || x >= size_x || y >= size_y || z >= size_z)
   end
 
   def is_block_flipped_h?(x, y, z)
@@ -164,20 +174,22 @@ class IsometricFactory
     block_image = assets.get_asset(get_block_type(x, y, z))
     color = ((debug ? get_debug_block_color(x, y, z) : get_block_color(x, y, z)))
 
-    block_image.draw_content(position.x,
-                             position.y,
-                             is_block_flipped_h?(x, y, z),
-                             is_block_flipped_v?(x, y, z),
-                             color,
-                             view)
+    block_image.draw_layer(:content,
+                           position.x,
+                           position.y,
+                           is_block_flipped_h?(x, y, z),
+                           is_block_flipped_v?(x, y, z),
+                           color,
+                           view,
+                           debug)
 
-    draw_decorations(x_pos, y_pos, z_pos, x, y, z)
-    block_image.draw_lighting(position.x,
-                              position.y,
-                              is_block_flipped_h?(x, y, z),
-                              is_block_flipped_v?(x, y, z),
-                              0xffff0000,
-                              view)
+    block_image.draw_layer(:lighting,
+                           position.x,
+                           position.y,
+                           is_block_flipped_h?(x, y, z),
+                           is_block_flipped_v?(x, y, z),
+                           0x10ffffff,
+                           view)
   end
 
   #draw all the blocks
@@ -217,41 +229,6 @@ class IsometricFactory
         end
     end
   end
-
-  def get_decorations(x, y, z)
-    return {}
-  end
-
-  def draw_decorations(x_pos, y_pos, z_pos, x, y, z)
-    decorations = get_decorations(x, y, z)
-
-    #look through the decorations for the block and which sides should be displayed
-    case view
-      when :south_east
-        left_dec = decorations[:east]
-        right_dec = decorations[:south]
-      when :south_west
-        left_dec = decorations[:south]
-        right_dec = decorations[:west]
-      when :north_east
-        left_dec = decorations[:north]
-        right_dec = decorations[:east]
-      when :north_west
-        left_dec = decorations[:west]
-        right_dec = decorations[:north]
-    end
-
-    position = get_block_position(x_pos, y_pos, z_pos)
-    unless left_dec.nil?
-      color = ((debug ? get_debug_block_color(x, y, z) : 0xffffffff))
-      assets.get_asset(left_dec).draw_content(position.x, position.y, false, false, color, view)
-    end
-    unless right_dec.nil?
-      color = ((debug ? get_debug_block_color(x, y, z) : 0xffffffff))
-      assets.get_asset(right_dec).draw_content(position.x, position.y, true, false, color, view)
-    end
-  end
-
   #rotate the view counter clockwise
   def rotate_counter_clockwise
     @view = VIEWS[view]

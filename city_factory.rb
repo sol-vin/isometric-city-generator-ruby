@@ -2,6 +2,8 @@ require './isometric_factory.rb'
 
 class CityFactory < PerlinFactory
 
+  attr_reader :buildable_types
+
   #used to reduce the seed
   DIMINISH = 0.1**19
 
@@ -35,6 +37,62 @@ class CityFactory < PerlinFactory
     @assets.add_alias(:cement, :tile)
     @assets.add_alias(:water, :tile)
     @assets.add_alias(:roof_5, :small_house_1)
+
+    @buildable_types = [:tile, :block, :grass, :cement]
+  end
+
+  def is_type_buildable?(type)
+    not type.nil? and @buildable_types.include? type
+  end
+
+  def is_tile_buildable?(x, y)
+    is_type_buildable?(get_tile_type(x, y))
+  end
+
+  def roll_road_x(x)
+    get_perlin_bool_2d(x, ROAD_SEED, 1, ROAD_CHANCE)
+  end
+
+  def roll_road_y(y)
+    get_perlin_bool_2d(ROAD_SEED, y, 1, ROAD_CHANCE)
+  end
+
+  def get_road_direction(x, y)
+    return :x if roll_road_x x
+    return :y if roll_road_y y
+  end
+
+  def is_a_road?(x, y)
+   roll_road_x(x) || roll_road_y(y)
+  end
+
+  def is_an_intersection?(x, y)
+    roll_road_x(x) && roll_road_y(y)
+  end
+
+  def get_tile_type(x, y)
+    #see if it is a road first
+    if is_a_road?(x, y) || is_an_intersection?(x, y)
+      #find which axis
+      if is_an_intersection?(x, y)
+        return :road_4_way
+      else
+        return :road_straight
+      end
+    end
+
+    height = get_perlin_height(x, y)
+    if height <= 1
+      return :water
+    elsif height < 4
+      return :grass
+    else
+      return :cement
+    end
+  end
+
+  def get_tile_color(x, y)
+    0xffffffff
   end
 
   def is_tile_flipped_h?(x, y)
@@ -43,120 +101,23 @@ class CityFactory < PerlinFactory
       when :road_4_way
         false
       when :road_straight
-        (get_perlin_bool_1d(y, 1, ROAD_CHANCE) && (view == :south_west || view == :north_east)) ||
-            (get_perlin_bool_1d(x, 1, ROAD_CHANCE) && (view == :south_east || view == :north_west))
+        (roll_road_y(y) && (view == :south_west || view == :north_east)) ||
+            (roll_road_x(x) && (view == :south_east || view == :north_west))
       else
         return false
     end
   end
 
-  def is_a_road?(x, y)
-    get_perlin_bool_2d(x, ROAD_SEED, 1, ROAD_CHANCE) || get_perlin_bool_2d(ROAD_SEED, y, 1, ROAD_CHANCE)
-  end
-
-  def get_tile_type(x, y)
-
-    #see if it is a road first
-    if is_a_road?(x, y)
-      #find which axis
-      if get_perlin_bool_1d(x, 1, ROAD_CHANCE) && get_perlin_bool_1d(y, 1, ROAD_CHANCE)
-        return :road_4_way
-      elsif (get_perlin_bool_1d(x, 1, ROAD_CHANCE) || get_perlin_bool_1d(y, 1, ROAD_CHANCE))
-        return :road_straight
-      end
-    end
-
-    height = get_perlin_height(x, y)
-    if height == 0
-      return :water
-    elsif height < 3
-      return :grass
-    else
-      return :cement
-    end
-  end
-
-  def get_tile_color(x, y)
-    if get_tile_type(x,y) == :grass
-      return 0xff1ecc1e
-    elsif get_tile_type(x,y) == :cement
-      return 0xffe6e6e6
-    elsif get_tile_type(x, y) == :water
-      return 0xff0000ff
-    end
-    0xffffffff
-  end
-
-  def is_tile_buildable?(x, y)
-    is_tile_type_buildable?(get_tile_type(x, y))
-  end
-
-  def is_tile_type_buildable?(type)
-    !(assets.f_c(:roads).include?(type) || type == :water || type.nil?)
-  end
-
   def get_block_type(x, y, z)
     return nil unless is_block_at?(x, y, z)
-    return nil unless is_tile_buildable?(x, y)
-
-    if is_foliage_at?(x, y)
-      if z == 0
-        return get_perlin_item_3d(x, y, FOLIAGE_SEED, assets.f_c(:foliage))
-      else
-        return nil
-      end
+    unless is_block_at?(x, y, z+1)
+      return get_perlin_item_3d(x, y, ROOF_SEED, @assets.f_c(:roofs))
     end
-
-    #make it a roof sometimes if there is no block above
-    if is_block_at?(x, y, z - 1) && !is_block_at?(x, y, z + 1) && is_block_buildable(x,y,z-1)
-      #roll for a roof
-      if get_perlin_bool_3d(x, y, ROOF_SEED, 1, ROOF_CHANCE)
-        if get_perlin_height(x, y) <  2
-          return :roof_1
-        end
-        return get_perlin_item_3d(x, y, z, assets.f_c(:roofs))
-      end
-    end
-
-    if get_perlin_height(x, y) <= 1 && z == 0
-      return :small_house_1
-    elsif get_perlin_height(x, y) <= 1
-      return nil
-    end
-
     return :block
   end
 
-  def get_block_color(x, y, z)
-    if get_block_type(x,y,z) == :block || get_block_type(x, y, z) == :small_house_1 || assets.f_c(:roofs).include?(get_block_type(x,y,z))
-      return get_perlin_item_3d(x, y, BUILDING_COLOR_SEED, @building_colors)
-    end
-
-    0xffffffff
-  end
-
-  def is_block_flipped_h?(x, y, z)
-    type = get_block_type(x, y, z)
-    case(type)
-      when :roof_1
-        return get_perlin_bool_3d(x, y, ROOF_1_FLIP_SEED) if view == :north_west || view == :south_east
-        return !get_perlin_bool_3d(x, y, ROOF_1_FLIP_SEED) if view == :north_east || view == :south_west
-      when :small_house_1
-        return get_perlin_bool_3d(x, y, z) if view == :north_west || view == :south_east
-        return !get_perlin_bool_3d(x, y, z) if view == :north_east || view == :south_west
-    end
-
-    if assets.f_c(:billboards).include? type
-      return get_perlin_bool_3d(x, y, BILLBOARD_FLIP_SEED)
-    end
-  end
-
-  def is_block_type_buildable?(type)
-    !(assets.f_c(:roofs).include?(type) || assets.f_c(:foliage).include?(type)  || type == :small_house_1 || type.nil?)
-  end
-
-  def is_block_buildable(x, y, z)
-    is_block_type_buildable?(get_block_type(x,y,z)) && is_tile_buildable?(x, y)
+  def is_block_buildable?(x, y, z)
+    is_tile_buildable?(x, y) and is_type_buildable?(get_block_type(x, y, z))
   end
 
   def is_block_at?(x, y, z)
@@ -168,36 +129,15 @@ class CityFactory < PerlinFactory
   end
 
   def is_building_at?(x, y)
-    get_perlin_bool_3d(x, y, BUILDING_SEED, 1, BUILDING_CHANCE) && is_tile_buildable?(x, y) && !is_foliage_at?(x, y)
+    #V--- The first block is buildable?  V--- Roll the dice
+    is_tile_buildable?(x, y) and get_perlin_bool_3d(x, y, BUILDING_SEED, 1, BUILDING_CHANCE)
   end
 
-  def get_decorations(x, y, z)
-    return {} unless get_block_type(x, y, z) == :block
-    decorations = {}
-
-    if (z == 0)
-      if true #get_perlin_bool_2d(x, y, 1, DOOR_CHANCE)
-        if get_tile_type(x - 1, y) == :road_straight
-          door_direction = :east
-        elsif get_tile_type(x + 1, y) == :road_straight
-          door_direction = :west
-        elsif get_tile_type(x, y - 1) == :road_straight
-          door_direction = :north
-        elsif get_tile_type(x, y + 1) == :road_straight
-          door_direction = :south
-        else
-          door_direction = get_perlin_item_3d(x, y, z, [:north, :south, :east, :west])
-        end
-        decorations[door_direction] = get_perlin_item_3d(x, y, z, assets.f_c(:doors))
-      end
+  def get_block_color(x, y, z)
+    if get_block_type(x,y,z) == :block || get_block_type(x, y, z) == :small_house_1 || assets.f_c(:roofs).include?(get_block_type(x,y,z))
+      return get_perlin_item_3d(x, y, BUILDING_COLOR_SEED, @building_colors)
     end
 
-    window = get_perlin_item_3d(x, y, z, assets.f_c(:windows))
-    decorations[:north] ||= window
-    decorations[:south] ||= window
-    decorations[:west] ||= window
-    decorations[:east] ||= window
-    decorations
+    0xffffffff
   end
-
 end

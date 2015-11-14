@@ -18,7 +18,7 @@ class PerlinFactory < IsometricFactory
 
   #overridden methods
   def is_block_at?(x, y, z)
-    super(x, y, z) && (get_perlin_noise_2d(x, y) * size_z).round >= z
+    super(x, y, z) and get_perlin_height(x, y) >= z
   end
 
   #new methods

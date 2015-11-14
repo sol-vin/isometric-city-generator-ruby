@@ -26,6 +26,8 @@ class IsometricAssets
 
       #make the initial asset,
       asset = IsometricAsset.new folder, ICGTools.read_texture_config(blocks_path + 'cfg')
+
+      #go through each image in the asset folder
       Dir.entries(blocks_path).each do |image_file|
         next if image_file =~ /^\.*$/ #stops . and . . as folders
         next if image_file == 'cfg' #ignore the configuration file
@@ -56,7 +58,6 @@ class IsometricAssets
     return @assets[type] unless @assets[type] == nil
     return @assets[@alias[type]]
   end
-
 
   def block_width
     @assets[:block].width
