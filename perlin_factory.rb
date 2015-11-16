@@ -8,12 +8,15 @@ class PerlinFactory < IsometricFactory
   PERLIN_PERSIST = 0.03
   PERLIN_VALUE_MULTIPLIER = 9
 
+  attr_accessor :perlin_height_diminish
+
   attr_reader :seed
 
   def initialize(seed, size_x, size_y, size_z)
     super(size_x, size_y, size_z)
     @seed  = seed
     @perlin_noise = Perlin::Generator.new(seed, PERLIN_PERSIST, PERLIN_OCTAVE)
+    @perlin_height_diminish = 1.0
   end
 
   #overridden methods
@@ -28,9 +31,12 @@ class PerlinFactory < IsometricFactory
     @perlin_noise = Perlin::Generator.new(seed, PERLIN_PERSIST, PERLIN_OCTAVE)
   end
 
+
   def get_perlin_height(x, y)
-    (get_perlin_noise_2d(x, y) * size_z).round
+    ((get_perlin_noise_2d(x, y) * size_z).round * perlin_height_diminish).to_i
   end
+
+  #gets perlin noise values from the generator
 
   def get_perlin_noise(*args)
     case args.length
@@ -55,6 +61,7 @@ class PerlinFactory < IsometricFactory
     (@perlin_noise[x * PERLIN_STEP, y * PERLIN_STEP, z * PERLIN_STEP] + 1) / 2.0
   end
 
+  #gets a random number from the noise generator
   def get_perlin_value(*args)
     case args.length
       when 3
@@ -81,7 +88,7 @@ class PerlinFactory < IsometricFactory
     (get_perlin_noise_3d(x,y,z).to_s[-7..-1].to_i % (high+1-low)) + low
   end
 
-
+  #gets a boolean value out of the perlin generator
   def get_perlin_bool_1d(x, chance=1, outof=2)
     throw Exception.new("chance must be less than outof") if chance >= outof
     get_perlin_value_1d(x, chance, outof) <= chance
@@ -97,6 +104,7 @@ class PerlinFactory < IsometricFactory
     get_perlin_value_3d(x, y, z, chance, outof) <= chance
   end
 
+  #pulls a random item out of an array using the perlin generator
   def get_perlin_item_1d(x, array)
     array[get_perlin_value_1d(x, 0, array.length-1)]
   end

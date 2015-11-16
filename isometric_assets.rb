@@ -25,12 +25,12 @@ class IsometricAssets
       puts blocks_path
 
       #make the initial asset,
-      asset = IsometricAsset.new folder, ICGTools.read_texture_config(blocks_path + 'cfg')
+      asset = IsometricAsset.new folder, ICGTools.read_texture_config(blocks_path + 'cfg.yml')
 
       #go through each image in the asset folder
       Dir.entries(blocks_path).each do |image_file|
         next if image_file =~ /^\.*$/ #stops . and . . as folders
-        next if image_file == 'cfg' #ignore the configuration file
+        next if image_file == 'cfg.yml' #ignore the configuration file
         image_tag = image_file.split('.').first.to_sym #grab the tag out of the filename
         asset.load_asset(image_tag, blocks_path + image_file) #load the tag and image into the asset
       end

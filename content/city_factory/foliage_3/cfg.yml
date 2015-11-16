@@ -1,0 +1,26 @@
+collections:
+  - blocks
+  - foliage
+  - flowers
+
+views:
+  north_west:
+    none:
+      content:
+        base:
+          color: 0xffffffff
+  north_east:
+    none:
+      content:
+        base:
+          color: 0xffffffff
+  south_west:
+    none:
+      content:
+        base:
+          color: 0xffffffff
+  south_east:
+    none:
+      content:
+        base:
+          color: 0xffffffff

@@ -36,18 +36,18 @@ class IsometricAsset < Hash
     self[:base].height
   end
 
-  def draw_layer layer, x, y, flip_h, flip_v, color, view, debug = false
-    return :no_layer if config[:views][view][layer].nil?
-    # || Access the config file (cfg) from the assets base dir.
+  def draw_layer layer, x, y, flip_h, flip_v, color, view, rotation = :none, debug = false
+    return :no_layer if config[:views][view][rotation][layer].nil?
+    # || Access the config file (cfg.yml) from the assets base dir.
     # ||    || contains a list of the 4 psible rotations and wha shading should be drawn for each
     # ||    ||      || get the current views rendering and layer data
     # ||    ||      ||    || get only the layer
     # \/    \/      \/    \/
-    config[:views][view][layer].each do |asset_name, asset_options|
+    config[:views][view][rotation][layer].each do |asset_name, asset_options|
       # the color of the object as provided the config, or at runtime,
       # config overrides the color passed into this method via arguments
       # this is to prevent specially colored objects from taking color properties
-      # if you specify a color in the cfg for this asset, it will override the color
+      # if you specify a color in the cfg.yml for this asset, it will override the color
       # passed in by argument color.
       real_color = ((asset_options[:color].nil? || debug) ? color : asset_options[:color])
 

@@ -31,7 +31,7 @@ class IsometricFactory
   end
 
   def get_tile_rotation(x, y)
-    #TODO: Add rotation for all 16 cardinal directions
+    :none
   end
 
   #finds out what kind of tile is at an index
@@ -74,9 +74,7 @@ class IsometricFactory
     position = get_tile_position(x_pos, y_pos)
 
     tile_image = assets.get_asset(get_tile_type(x, y))
-
-
-
+    
     tile_image.draw_layer(:content,
                           position.x,
                           position.y,
@@ -84,6 +82,7 @@ class IsometricFactory
                           is_tile_flipped_v?(x, y),
                           ((debug ? get_debug_tile_color(x, y) : get_tile_color(x, y))),
                           view,
+                          get_tile_rotation(x, y),
                           debug)
   end
 
@@ -138,7 +137,7 @@ class IsometricFactory
   end
 
   def get_block_rotation(x, y, z)
-
+    :none
   end
 
   #gets the color of the block when debug mode is active
@@ -181,6 +180,7 @@ class IsometricFactory
                            is_block_flipped_v?(x, y, z),
                            color,
                            view,
+                           get_block_rotation(x, y, z),
                            debug)
 
     block_image.draw_layer(:lighting,
@@ -189,7 +189,8 @@ class IsometricFactory
                            is_block_flipped_h?(x, y, z),
                            is_block_flipped_v?(x, y, z),
                            0x10ffffff,
-                           view)
+                           view,
+                           get_block_rotation(x, y, z))
   end
 
   #draw all the blocks
