@@ -5,12 +5,9 @@ collections:
 
 views:
   north_west:
-    none:
+    all:
       content:
         base:
-          flip_h: false
-        feature:
-          color: 0xffffffff
           flip_h: false
       lighting:
         light_side:
@@ -18,43 +15,114 @@ views:
           flip_h: true
         light:
           color: 0x10ffffff
+    zero_deg:
+      content:      
+        feature:
+          color: 0xffffffff
+          flip_h: false
+    ninty_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: true
+    one_eigth_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: false
+    two_seventy_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: true
   north_east:
-    none:
+    all:
       content:
         base:
           flip_h: false
-        feature:
-          color: 0xffffffff
-          flip_h: true
       lighting:
         light_side:
           color: 0x10ffffff
         light:
           color: 0x10ffffff
+    zero_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: true
+    ninty_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: false
+    one_eigth_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: true
+    two_seventy_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: false
   south_west:
-    none:
+    all:
       content:
         base:
           flip_h: false
-        feature_back:
-          flip_h: true
-          color: 0xffffffff
       lighting:
         shade_side:
           color: 0x10ffffff
           flip_h: true
         light:
           color: 0x10ffffff
+    zero_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: true
+    ninty_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: false
+    one_eigth_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: true
+    two_seventy_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: false
   south_east:
-    none:
+    all:
       content:
         base:
-          flip_h: false
-        feature_back:
-          color: 0xffffffff
           flip_h: false
       lighting:
         shade_side:
           color: 0x10ffffff
         light:
           color: 0x10ffffff
+    zero_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: false
+    ninty_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: true
+    one_eigth_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: false
+    two_seventy_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: true

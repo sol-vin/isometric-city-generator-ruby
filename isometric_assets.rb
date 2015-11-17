@@ -13,19 +13,34 @@ class IsometricAssets
     add_content name
   end
 
+  def home_path
+    File.dirname(File.absolute_path(__FILE__))
+  end
+
+  def content_path
+    home_path  + "/content/"
+  end
+
+  def cache_path
+    home_path + "/cache/"
+  end
+
+  def saves_path
+    home_path + "/saves/"
+  end
+
   def add_content(assets_name)
-    content_path = File.dirname(File.absolute_path(__FILE__)) + "/content/#{assets_name}/"
-    Dir.entries(content_path).each do |folder|
-      next if folder =~ /^\.*$/ #Returns . and . .as folders smh
-      name = folder.to_sym
-      puts "loading #{assets_name}/#{folder} from #{content_path + folder}"
+    Dir.entries(content_path + "#{assets_name}/").each do |block_asset|
+      next if block_asset =~ /^\.*$/ #Returns . and . .as folders smh
+      name = block_asset.to_sym
+      puts "loading #{assets_name}/#{block_asset} from #{content_path + "#{assets_name}/" + block_asset}"
 
       #try to assign images if they exist
-      blocks_path = content_path + "#{folder}/"
+      blocks_path = content_path + "#{assets_name}/" + "#{block_asset}/"
       puts blocks_path
 
       #make the initial asset,
-      asset = IsometricAsset.new folder, ICGTools.read_texture_config(blocks_path + 'cfg.yml')
+      asset = IsometricAsset.new block_asset, ICGTools.read_texture_config(blocks_path + 'cfg.yml')
 
       #go through each image in the asset folder
       Dir.entries(blocks_path).each do |image_file|

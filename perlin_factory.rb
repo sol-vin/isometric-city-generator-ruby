@@ -91,17 +91,17 @@ class PerlinFactory < IsometricFactory
   #gets a boolean value out of the perlin generator
   def get_perlin_bool_1d(x, chance=1, outof=2)
     throw Exception.new("chance must be less than outof") if chance >= outof
-    get_perlin_value_1d(x, chance, outof) <= chance
+    get_perlin_value_1d(x, 1, outof) <= chance
   end
 
   def get_perlin_bool_2d(x, y, chance=1, outof=2)
     throw Exception.new("chance must be less than outof") if chance >= outof
-    get_perlin_value_2d(x, y, chance, outof) <= chance
+    get_perlin_value_2d(x, y, 1, outof) <= chance
   end
 
   def get_perlin_bool_3d(x, y, z, chance=1, outof=2)
     throw Exception.new("chance must be less than outof") if chance >= outof
-    get_perlin_value_3d(x, y, z, chance, outof) <= chance
+    get_perlin_value_3d(x, y, z, 1, outof) <= chance
   end
 
   #pulls a random item out of an array using the perlin generator

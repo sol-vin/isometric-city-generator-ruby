@@ -8,7 +8,7 @@ class ICGTools
   end
 
   def self.read_texture_config(filename)
-    file = File.open(filename)
+    file = File.open(filename, "r")
     yaml_dump = Hash.keys_to_sym YAML.load(file.read)
     file.close
     yaml_dump

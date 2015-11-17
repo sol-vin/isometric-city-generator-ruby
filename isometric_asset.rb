@@ -12,7 +12,7 @@ class IsometricAsset < Hash
     @name = name
     @config = args
 
-    #make te collections symbols
+    #make the collections symbols
     @config[:collections].map!(&:to_sym)
 
     #views must contain all the rendering instructions for the renderer
@@ -37,12 +37,9 @@ class IsometricAsset < Hash
   end
 
   def draw_layer layer, x, y, flip_h, flip_v, color, view, rotation = :none, debug = false
-    return :no_layer if config[:views][view][rotation][layer].nil?
-    # || Access the config file (cfg.yml) from the assets base dir.
-    # ||    || contains a list of the 4 psible rotations and wha shading should be drawn for each
-    # ||    ||      || get the current views rendering and layer data
-    # ||    ||      ||    || get only the layer
-    # \/    \/      \/    \/
+    return :no_layer if (config[:views][view][rotation].nil? or
+                         config[:views][view][rotation][layer].nil?)
+
     config[:views][view][rotation][layer].each do |asset_name, asset_options|
       # the color of the object as provided the config, or at runtime,
       # config overrides the color passed into this method via arguments

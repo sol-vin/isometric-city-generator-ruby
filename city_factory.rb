@@ -83,7 +83,7 @@ class CityFactory < PerlinFactory
       end
     end
 
-    height = get_perlin_height(x, y)
+    height = get_stack_height(x, y)
     if height <= 1
       return :water
     elsif height < 4
@@ -136,10 +136,19 @@ class CityFactory < PerlinFactory
   end
 
   def is_block_at?(x, y, z)
-    super(x, y, z) and
+    super(x, y, z) and z <= get_stack_height(x, y) and
         (is_foliage_at?(x, y, z) or (!is_foliage_at?(x, y, 0) and is_building_at?(x, y)))
          #is there foliage at our location?  /\                 ^ and is there a building that is supposed to be there?
   end    #                                   || Is there no foliage on the bottom block
+
+  def get_block_rotation(x, y, z)
+    type = get_block_type(x, y, z)
+    if @assets.f_c(:billboards).include?(type)
+      return get_perlin_item_3d(x, y, BILLBOARD_FLIP_SEED, IsometricFactory::ROTATIONS)
+    else
+      return super(x, y, z)
+    end
+  end
 
   def is_foliage_at?(x, y, z)
     z == 0 and
@@ -147,10 +156,14 @@ class CityFactory < PerlinFactory
         get_perlin_bool_3d(x, y, FOLIAGE_SEED, 1, FOLIAGE_CHANCE)
   end
 
+  def get_stack_height(x, y)
+    get_perlin_height(x, y)
+  end
+
   def is_building_at?(x, y)
     #V--- The first block is buildable?
     is_tile_buildable?(x, y) and #V--- Roll the dice
-        get_perlin_bool_3d(x, y, BUILDING_SEED, 1, BUILDING_CHANCE)
+        get_perlin_bool_3d(x, y, BUILDING_SEED, 1 + (get_perlin_noise(x, y)), BUILDING_CHANCE)
   end
 
   def get_block_color(x, y, z)
@@ -161,5 +174,9 @@ class CityFactory < PerlinFactory
     end
 
     0xffffffff
+  end
+
+  def get_debug_block_color(x, y, z)
+    super(0, 0, get_stack_height(x, y))
   end
 end

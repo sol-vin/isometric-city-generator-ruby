@@ -8,7 +8,14 @@ class IsometricFactory
 
   #Hash of direction keys, which way the camera is facing and what direction is facing clockwise
   VIEWS = {north_west: :south_west, north_east: :north_west, south_east: :north_east, south_west: :south_east}
-  ROTATIONS = [:none_, :quarter_turn, :half_turn, :three_quarter_turn]
+  ROTATIONS = [:zero_deg, :ninty_deg, :one_eigth_deg, :two_seventy_deg]
+
+  #Rotation symbols with special meaning.
+  # :all means asset layers to be drawn on all the rotations
+  # :none is returned when an asset layer should not rotate
+  ROTATIONS_RESERVED = [:all, :none]
+
+
   #Size of the landscape
   attr_reader :size_x, :size_y, :size_z, :assets
   #current camera direction
@@ -74,7 +81,17 @@ class IsometricFactory
     position = get_tile_position(x_pos, y_pos)
 
     tile_image = assets.get_asset(get_tile_type(x, y))
-    
+
+    tile_image.draw_layer(:content,
+                          position.x,
+                          position.y,
+                          is_tile_flipped_h?(x, y),
+                          is_tile_flipped_v?(x, y),
+                          ((debug ? get_debug_tile_color(x, y) : get_tile_color(x, y))),
+                          view,
+                          :all,
+                          debug)
+
     tile_image.draw_layer(:content,
                           position.x,
                           position.y,
@@ -180,8 +197,27 @@ class IsometricFactory
                            is_block_flipped_v?(x, y, z),
                            color,
                            view,
+                           :all,
+                           debug)
+
+    block_image.draw_layer(:content,
+                           position.x,
+                           position.y,
+                           is_block_flipped_h?(x, y, z),
+                           is_block_flipped_v?(x, y, z),
+                           color,
+                           view,
                            get_block_rotation(x, y, z),
                            debug)
+
+    block_image.draw_layer(:lighting,
+                           position.x,
+                           position.y,
+                           is_block_flipped_h?(x, y, z),
+                           is_block_flipped_v?(x, y, z),
+                           0x10ffffff,
+                           view,
+                           :all)
 
     block_image.draw_layer(:lighting,
                            position.x,
@@ -228,6 +264,7 @@ class IsometricFactory
             end
           end
         end
+      #end case
     end
   end
   #rotate the view counter clockwise
