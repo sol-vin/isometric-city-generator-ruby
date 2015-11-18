@@ -1,0 +1,42 @@
+collections:
+  - blocks
+  - basic
+  - houses
+
+views:
+  north_west:
+    none:
+      content:
+        base:
+          flip_h: false
+      lighting:
+        light_side_1:
+          color: 0x10ffffff
+          flip_h: false
+  north_east:
+    none:
+      content:
+        base:
+          flip_h: true
+      lighting:
+        light_side_1:
+          color: 0x10ffffff
+          flip_h: true
+  south_west:
+    none:
+      content:
+        base:
+          flip_h: false
+      lighting:
+        shade_side_1:
+          color: 0x10ffffff
+          flip_h: false
+  south_east:
+    none:
+      content:
+        base:
+          flip_h: true
+      lighting:
+        shade_side_1:
+          color: 0x10ffffff
+          flip_h: true

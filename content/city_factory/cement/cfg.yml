@@ -1,0 +1,29 @@
+collections:
+  - tiles
+  - basic
+
+views:
+  north_west:
+    none:
+      content:
+        base:
+          flip_h: false
+          color: 0xffe6e6e6
+  north_east:
+    none:
+      content:
+        base:
+          flip_h: false
+          color: 0xffe6e6e6
+  south_west:
+    none:
+      content:
+        base:
+          flip_h: false
+          color: 0xffe6e6e6
+  south_east:
+    none:
+      content:
+        base:
+          flip_h: false
+          color: 0xffe6e6e6

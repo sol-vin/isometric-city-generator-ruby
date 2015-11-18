@@ -1,0 +1,53 @@
+collections:
+  - blocks
+  - basic
+
+views:
+  north_west:
+    none:
+      content:
+        base:
+          flip_h: false
+      lighting:
+        light_side:
+          color: 0x10ffffff
+          flip_h: true
+        light:
+          color: 0x10ffffff
+          flip_h: false
+  north_east:
+    none:
+      content:
+        base:
+          flip_h: false
+      lighting:
+        light_side:
+          color: 0x10ffffff
+          flip_h: false
+        light:
+          color: 0x10ffffff
+          flip_h: false
+  south_west:
+    none:
+      content:
+        base:
+          flip_h: false
+      lighting:
+        shade_side:
+          color: 0x10ffffff
+          flip_h: true
+        light:
+          color: 0x10ffffff
+          flip_h: false
+  south_east:
+    none:
+      content:
+        base:
+          flip_h: false
+      lighting:
+        shade_side:
+          color: 0x10ffffff
+          flip_h: false
+        light:
+          color: 0x10ffffff
+          flip_h: false

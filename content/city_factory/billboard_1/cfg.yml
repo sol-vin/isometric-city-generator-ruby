@@ -1,0 +1,128 @@
+collections:
+  - blocks
+  - roofs
+  - billboards
+
+views:
+  north_west:
+    all:
+      content:
+        base:
+          flip_h: false
+      lighting:
+        light_side:
+          color: 0x10ffffff
+          flip_h: true
+        light:
+          color: 0x10ffffff
+    zero_deg:
+      content:      
+        feature:
+          color: 0xffffffff
+          flip_h: false
+    ninty_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: true
+    one_eigth_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: false
+    two_seventy_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: true
+  north_east:
+    all:
+      content:
+        base:
+          flip_h: false
+      lighting:
+        light_side:
+          color: 0x10ffffff
+        light:
+          color: 0x10ffffff
+    zero_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: true
+    ninty_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: false
+    one_eigth_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: true
+    two_seventy_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: false
+  south_west:
+    all:
+      content:
+        base:
+          flip_h: false
+      lighting:
+        shade_side:
+          color: 0x10ffffff
+          flip_h: true
+        light:
+          color: 0x10ffffff
+    zero_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: true
+    ninty_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: false
+    one_eigth_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: true
+    two_seventy_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: false
+  south_east:
+    all:
+      content:
+        base:
+          flip_h: false
+      lighting:
+        shade_side:
+          color: 0x10ffffff
+        light:
+          color: 0x10ffffff
+    zero_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: false
+    ninty_deg:
+      content:
+        feature_back:
+          color: 0xffffffff
+          flip_h: true
+    one_eigth_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: false
+    two_seventy_deg:
+      content:
+        feature:
+          color: 0xffffffff
+          flip_h: true

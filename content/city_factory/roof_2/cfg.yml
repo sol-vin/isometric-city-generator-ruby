@@ -1,0 +1,40 @@
+collections:
+  - blocks
+  - basic
+  - roofs
+
+views:
+  north_west:
+    none:
+      content:
+        base:
+          flip_h: false
+      lighting:
+        light_side:
+          color: 0x10ffffff
+          flip_h: true
+  north_east:
+    none:
+      content:
+        base:
+          flip_h: true
+      lighting:
+        light_side:
+          color: 0x10ffffff
+  south_west:
+    none:
+      content:
+        base:
+          flip_h: false
+      lighting:
+        shade_side:
+          color: 0x10ffffff
+          flip_h: true
+  south_east:
+    none:
+      content:
+        base:
+          flip_h: true
+      lighting:
+        shade_side:
+          color: 0x10ffffff
