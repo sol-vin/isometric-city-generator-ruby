@@ -2,9 +2,10 @@
 
 require './key.rb'
 require './isometric_factory.rb'
-require './perlin_factory.rb'
-require './city_factory.rb'
-
+require './factories/perlin_factory'
+require './factories/city_factory'
+require './factories/edge_test_factory.rb'
+require './factories/sine_wave_factory.rb'
 
 require './monkey_patch.rb'
 
@@ -17,12 +18,12 @@ class Game < Gosu::Window
   SIZE_Y = 50
   SIZE_Z = 7
   def initialize
-    super(1800, 1000, false)
+    super(1300, 600, false)
 
     Gosu::enable_undocumented_retrofication
 
     @camera = Vector2.new(0,0)
-    @generators = [PerlinFactory, CityFactory]
+    @generators = [EdgeTestFactory, SineWaveFactory, PerlinFactory, CityFactory]
     @generator = 0
 
     @zoom_modes = [0.5, 1, 2, 4, 8, 16, 32]

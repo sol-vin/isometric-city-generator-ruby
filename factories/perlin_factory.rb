@@ -1,5 +1,5 @@
 require 'perlin'
-require './isometric_factory.rb'
+require_relative '../isometric_factory.rb'
 
 class PerlinFactory < IsometricFactory
 

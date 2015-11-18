@@ -1,4 +1,4 @@
-require './isometric_factory.rb'
+require_relative '../isometric_factory.rb'
 
 class CityFactory < PerlinFactory
 
