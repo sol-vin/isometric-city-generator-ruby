@@ -70,6 +70,7 @@ class IsometricAssets
 
   #Get a block asset from @@blocks
   def get_asset type
+    throw Exception.new 'no uncached asset tag allowed!' if type.eql? :uncached
     return @assets[type] unless @assets[type] == nil
     return @assets[@alias[type]]
   end

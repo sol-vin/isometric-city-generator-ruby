@@ -10,15 +10,16 @@ require './factories/sine_wave_factory.rb'
 require './monkey_patch.rb'
 
 require 'gosu'
+require 'benchmark'
 
 class Game < Gosu::Window
 
   CAMERA_SPEED = 10
   SIZE_X = 50
   SIZE_Y = 50
-  SIZE_Z = 7
+  SIZE_Z = 8
   def initialize
-    super(1300, 600, false)
+    super(1200, 600, false)
 
     Gosu::enable_undocumented_retrofication
 
@@ -29,10 +30,13 @@ class Game < Gosu::Window
     @zoom_modes = [0.5, 1, 2, 4, 8, 16, 32]
     @zoom = 1
 
-    @factory = @generators[@generator].new(rand(1000000), SIZE_X, SIZE_Y, SIZE_Z)
+
+    @factory = @generators[@generator].new(rand(100_000_00), SIZE_X, SIZE_Y, SIZE_Z)
 
     @draw_blocks = true
     @draw_grid = true
+
+    @time = 0
 
     @render_mode = :draw_easy
 
@@ -59,8 +63,10 @@ class Game < Gosu::Window
     close if @close_button.is_down?
 
     if @random_button.was_pressed?
-      @factory.seed = rand(1000000)
-      @image = nil
+      force_redraw
+      view = @factory.view
+      @factory = @generators[@generator].new(rand(100_000_00), SIZE_X, SIZE_Y, SIZE_Z)
+      @factory.view = view
     end
 
     @camera.x -= CAMERA_SPEED if button_down? Gosu::KbRight
@@ -130,7 +136,7 @@ class Game < Gosu::Window
       force_redraw
     end
 
-    self.caption = "ICG fps: #{Gosu.fps} rm: #{@render_mode} gen: #{@generator} seed: #{@factory.seed} view: #{@factory.view} db: #{@draw_blocks} dg:#{@draw_grid} debug:#{@factory.debug}"
+    self.caption = "ICG c:#{@camera.x},#{@camera.y} fps: #{Gosu.fps} seed: #{@factory.seed} g_t: #{@factory.fill_cache_time} d_t: #{@time} debug:#{@factory.debug}"
 
     Key.post_update_keys self
   end
@@ -142,11 +148,15 @@ class Game < Gosu::Window
 
   def draw_easy
     @image ||= record(1, 1) do
-      @factory.draw_grid if @draw_grid
-      @factory.draw_blocks if @draw_blocks
+      #profiler = MethodProfiler.observe(IsometricFactory)
+      @time = Benchmark.realtime do
+        @factory.draw_grid if @draw_grid
+        @factory.draw_blocks if @draw_blocks
+      end
+      #puts profiler.report.sort_by(:total_calls).order(:ascending)
     end
     translate(@camera.x, @camera.y) do
-      @image.draw(0, 0, 1, @zoom_modes[@zoom], @zoom_modes[@zoom])
+      @image.draw(740, 190, 1, @zoom_modes[@zoom], @zoom_modes[@zoom])
     end
   end
 

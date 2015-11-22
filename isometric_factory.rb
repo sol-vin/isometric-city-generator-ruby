@@ -1,12 +1,13 @@
 
 require './isometric_assets.rb'
 require './monkey_patch.rb'
-
+require 'benchmark'
 class IsometricFactory
 
   OFFSET = Vector2.new(0, 0)
 
   #Hash of direction keys, which way the camera is facing and what direction is facing clockwise
+  DIRECTIONS = [:north, :south, :east, :west]
   VIEWS = {north_west: :south_west, north_east: :north_west, south_east: :north_east, south_west: :south_east}
   ROTATIONS = [:zero_deg, :ninty_deg, :one_eigth_deg, :two_seventy_deg]
 
@@ -21,6 +22,9 @@ class IsometricFactory
   #current camera direction
   attr_accessor :view, :debug
 
+  attr_reader :cache, :fill_cache_time
+
+
   def initialize(size_x, size_y, size_z)
     @size_x = size_x
     @size_y = size_y
@@ -28,6 +32,24 @@ class IsometricFactory
     @view = :south_east
     @debug = false
     @assets = IsometricAssets.new("isometric_factory")
+
+
+    @fill_cache_time = Benchmark.realtime do
+      @cache = fill_cache
+    end
+  end
+
+  def fill_cache
+    #fill the cache with :uncached to ensure spaces don't get left out.
+    @cache ||= Array.new(size_x, Array.new(size_y, Array.new(size_z, :uncached)))
+
+    size_x.times do |x|
+      size_y.times do |y|
+        size_z.times do |z|
+          @cache[x][y][z] = get_block_type(x, y, z)
+        end
+      end
+    end
   end
 
   #gets the actual position of a tile based on its index
@@ -74,13 +96,13 @@ class IsometricFactory
     false
   end
 
-
   #draws the tile at a position
   def draw_tile(x_pos, y_pos, x, y)
     return unless is_tile_at?(x, y)
     position = get_tile_position(x_pos, y_pos)
+    type = get_tile_type(x, y)
 
-    tile_image = assets.get_asset(get_tile_type(x, y))
+    tile_image = assets.get_asset(type)
 
     tile_image.draw_layer(:content,
                           position.x,
@@ -92,6 +114,7 @@ class IsometricFactory
                           :all,
                           debug)
 
+
     tile_image.draw_layer(:content,
                           position.x,
                           position.y,
@@ -101,6 +124,7 @@ class IsometricFactory
                           view,
                           get_tile_rotation(x, y),
                           debug)
+
   end
 
   #draw phase for the grid
@@ -145,7 +169,8 @@ class IsometricFactory
 
   #finds out what kind of block is at an index
   def get_block_type(x, y, z)
-    (is_block_at?(x, y ,z) ? :block : nil)
+    return cache[x][y][z] if cache[x][y][z].eql? :uncached
+    return (is_block_at?(x, y ,z) ? :block : nil)
   end
 
   #get the color of a block at an index
@@ -209,6 +234,23 @@ class IsometricFactory
                            view,
                            get_block_rotation(x, y, z),
                            debug)
+
+    #draw decorations
+    #decorations = get_decorations(x, y, z)
+    # unless decorations.nil?
+    #   view.to_s.split('_').inject(&:to_sym).each do |direction|
+    #
+    #   assets.get_asset(decorations[direction]).draw_layer(:content,
+    #                                       position.x,
+    #                                     position.y,
+    #                                     is_block_flipped_h?(x, y, z),
+    #                                     is_block_flipped_v?(x, y, z),
+    #                                     color,
+    #                                     view,
+    #                                     :none,
+    #                                     debug)
+    #   end
+    # end
 
     block_image.draw_layer(:lighting,
                            position.x,
@@ -280,5 +322,14 @@ class IsometricFactory
   #dumps all the blocks in a specific region to a stream
   def dump_blocks(stream, x_start, y_start, z_start, x_end, y_end, z_end)
 
+  end
+
+  def get_decoration(x, y)
+    nil
+  end
+
+  def get_decorations(x, y, z)
+    decorations = {}
+    decorations
   end
 end
